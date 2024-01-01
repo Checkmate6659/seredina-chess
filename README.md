@@ -1,2 +1,2 @@
 # seredina-chess
-No readme for now... ¯\\_(ツ)_/¯
+No readme for now... ¯\\\_(ツ)_/¯
