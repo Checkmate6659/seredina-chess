@@ -9,7 +9,7 @@
 #include "eval.hpp"
 using namespace chess;
 
-#define ENGINE_NAME "BasicChessEngine v1.0"
+#define ENGINE_NAME "Seredina v1.0"
 
 #define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
 
@@ -21,7 +21,7 @@ int main()
         std::cerr << "Cannot allocate 16MB hash table\n";
         return 1;
     }
-    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Board board = Board();
 
     //UCI loop
     while(true)
