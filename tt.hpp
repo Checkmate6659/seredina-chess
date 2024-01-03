@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <stdint.h>
 #include "chess.hpp"
-typedef uint64_t U64;
 using namespace chess;
 
 #define    hashfEXACT   0
@@ -14,7 +13,7 @@ using namespace chess;
 
 typedef struct
 {
-    U64 key;
+    uint64_t key;
     int8_t depth;
     uint8_t flags;
     int32_t val;
@@ -42,7 +41,7 @@ bool alloc_hash(uint32_t size_mb)
 //look at https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/tt/tt_probe.c
 HASHE* ProbeHash(Board &board, int8_t ply)
 {
-    U64 curhash = board.hash();
+    uint64_t curhash = board.hash();
     HASHE* phashe = &hash_table[curhash % hash_size];
 
     if (phashe->key == curhash) //hit
@@ -81,7 +80,7 @@ void RecordHash(Board &board, int8_t depth, int32_t val, uint8_t flags, const Mo
             val += ply; //same backwards
     }
 
-    U64 curhash = board.hash();
+    uint64_t curhash = board.hash();
     HASHE* phashe = &hash_table[curhash % hash_size];
 
     phashe->key = curhash;

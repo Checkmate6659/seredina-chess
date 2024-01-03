@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "chess.hpp"
+#include "bb_util.hpp"
 using namespace chess;
 
 //pack 2 16-bit signed values into a 32-bit value

@@ -289,7 +289,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             pv_board.makeMove(best_move); //make best move
 
             //extract PV from TT
-            U64 hash = pv_board.hash();
+            uint64_t hash = pv_board.hash();
             HASHE *phashe = ProbeHash(pv_board, 0);
             //sometimes TT entries don't have a move; also have a counter in case of repetition
             for (int i = 0; phashe != nullptr && phashe->best && i < MAX_DEPTH; i++)
