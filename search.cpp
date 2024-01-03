@@ -78,15 +78,19 @@ Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack
     //are we in a PV-node? (useless for now)
     //bool pv_node = (beta - alpha > 1);
 
-    if (depth == 0)
+    //test if we are in check
+    bool incheck = board.inCheck();
+
+    //original depth is const; to keep original depth value
+    int new_depth = depth;
+    new_depth += incheck; //check extension
+
+    if (new_depth == 0) //don't get in qsearch when we are in check!
         return quiesce(board, alpha, beta);
 
     //check repetition BEFORE probing (no worry about priority for repetition!!!)
     if (board.isRepetition(1))
         return DRAW;
-
-    //original depth is const; to keep original depth value
-    int new_depth = depth;
 
     //probe hash table
     //https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/engine/search_bestmove.c
@@ -126,7 +130,7 @@ Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack
     movegen::legalmoves(moves, board);
 
     if (moves.size() == 0) //no legal moves
-        return board.inCheck() ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
+        return incheck ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
     if (board.isHalfMoveDraw()) //repetitions or 50-move rule
         return DRAW;
 
