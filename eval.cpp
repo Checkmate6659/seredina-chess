@@ -53,6 +53,9 @@ int gamephaseInc[12] = {0,1,1,2,4,0,0,1,1,2,4,0};
 int mg_table[12][64];
 int eg_table[12][64];
 
+/* #define EVALHASH_SIZE (1<<18) //real size is 8*this in bytes (2MB here)
+uint64_t evalhash[EVALHASH_SIZE]; */
+
 void init_tables()
 {
     for (int pc = (int)Piece::WHITEPAWN; pc <= (int)Piece::WHITEKING; pc++) {
@@ -63,6 +66,13 @@ void init_tables()
             eg_table[pc+6][sq] = EG(psqt[pc * 64 + sq]);
         }
     }
+
+    //clear eval hash table
+    /* for (int i = 0; i < EVALHASH_SIZE; i++)
+    {
+        //"mate" value: if we get a wrong hit, avoid that position
+        evalhash[i] = 192 - 32767; //getting lots of 0s in a hash is ultra-rare tho...
+    } */
 }
 
 //"Expensive" mobility/king safety eval
@@ -140,6 +150,12 @@ void mob_ks_exp(Board &board, Value &mg, Value &eg)
 
 Value eval(Board board)
 {
+    //probe eval hash table
+    /* uint64_t hash = board.hash();
+    uint64_t evalhash_entry = evalhash[hash % EVALHASH_SIZE];
+    if (!((evalhash_entry ^ hash) & 0xFFFFFFFF00000000)) //eval TT hit
+        return (Value)(evalhash_entry & UINT32_MAX); */
+
     Value mg = 0, eg = 0;
     uint8_t mgPhase = 0;
     //TODO: scale endgame score based on pawns of stronger side (affine function)
@@ -203,5 +219,10 @@ Value eval(Board board)
     //tapered eval
     if (mgPhase > 24) mgPhase = 24; /* in case of early promotion */
     uint8_t egPhase = 24 - mgPhase;
-    return (mg * mgPhase + eg * egPhase) / 24;
+
+    //value that will be returned and stored in eval hash table
+    Value final_value = (mg * mgPhase + eg * egPhase) / 24;
+    //store it in eval hash table
+    // evalhash[hash % EVALHASH_SIZE] = (uint64_t)(uint32_t)final_value | (hash & 0xFFFFFFFF00000000);
+    return final_value;
 }
