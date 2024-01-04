@@ -65,6 +65,79 @@ void init_tables()
     }
 }
 
+//"Expensive" mobility/king safety eval
+void mob_ks_exp(Board &board, Value &mg, Value &eg)
+{
+    //calculate occupancy and pawn attacks for both sides
+    U64 occ = board.occ();
+    U64 wpawns = board.pieces(PieceType::PAWN, Color::WHITE);
+    U64 bpawns = board.pieces(PieceType::PAWN, Color::BLACK);
+    U64 wpawn_atk = wPawnAttacks(wpawns);
+    U64 bpawn_atk = bPawnAttacks(bpawns);
+
+    Square wking_sq = board.kingSq(Color::WHITE);
+    Square bking_sq = board.kingSq(Color::BLACK);
+
+    //calculate king zones
+    U64 wking_zone = attacks::king(wking_sq);
+    wking_zone |= wking_zone << 8;
+    U64 bking_zone = attacks::king(bking_sq);
+    bking_zone |= bking_zone >> 8;
+
+    //calculate king virtual mobility scores (DISABLED)
+    /* U64 white_vm = attacks::queen(wking_sq, occ);
+    U64 black_vm = attacks::queen(board.kingSq(Color::BLACK), occ);
+    //add it up! (NOTE: there is a bug here somewhere! but where???)
+    mg += MG(mobility[5*28 + white_vm.count()]);
+    mg -= MG(mobility[5*28 + black_vm.count()]);
+    eg += EG(mobility[5*28 + white_vm.count()]);
+    eg -= EG(mobility[5*28 + black_vm.count()]); */
+
+    for (uint8_t sq = 0; sq < 64; ++sq) {
+        uint8_t pc = (int)board.at<Piece>(sq);
+        if (pc != (int)Piece::NONE) {
+            //eval mobility
+            //0: pawn; 1: knight; 2: bishop; 3: rook; 4: queen; 5: king
+            const PieceType piece_type = board.at<PieceType>(sq);
+            if (piece_type == PieceType::PAWN) continue; //skip pawns
+            if (piece_type == PieceType::KING) continue; //skip king
+
+            U64 atked_squares;
+            switch((int)piece_type)
+            {
+                case 1: //knight
+                    atked_squares = attacks::knight(sq); //don't think we have flip here!
+                    break;
+                case 2: //bishop
+                    atked_squares = attacks::bishop(sq, occ);
+                    break;
+                case 3: //rook
+                    atked_squares = attacks::rook(sq, occ);
+                    break;
+                case 4: //queen (king has already been handled)
+                    atked_squares = attacks::queen(sq, occ);
+                    break;
+            }
+
+            int8_t perspective = (pc >= 6) ? -1 : 1; //-1 if black, 1 if white
+
+            //look at ENEMY king zone, not friendly! so its swapped on the right
+            U64 king_zone_atk = atked_squares & ((perspective == 1) ? bking_zone : wking_zone);
+            mg += MG(kingzone[piece_type * 12 + king_zone_atk.count()]) * perspective;
+            eg += EG(kingzone[piece_type * 12 + king_zone_atk.count()]) * perspective;
+
+            //exclude squares attacked by enemy pawns
+            U64 enemy_pawn_atks = (perspective == -1) ? wpawn_atk : bpawn_atk;
+            atked_squares &= ~enemy_pawn_atks;
+
+            //add it up!
+            ValPair cur_mob_score = mobility[piece_type * 28 + atked_squares.count()];
+            mg += MG(cur_mob_score) * perspective;
+            eg += EG(cur_mob_score) * perspective;
+        }
+    }
+}
+
 Value eval(Board board)
 {
     Value mg = 0, eg = 0;
@@ -102,36 +175,6 @@ Value eval(Board board)
         eg += passer_count * EG(passer_coefs[i]);
     }
 
-    //calculate occupancy and pawn attacks for both sides
-    U64 occ = board.occ();
-    U64 wpawn_atk = wPawnAttacks(wpawns);
-    U64 bpawn_atk = bPawnAttacks(bpawns);
-
-    Square wking_sq = board.kingSq(Color::WHITE);
-    Square bking_sq = board.kingSq(Color::BLACK);
-
-    //calculate king virtual mobility scores
-    /* U64 white_vm = attacks::queen(wking_sq, occ);
-    U64 black_vm = attacks::queen(board.kingSq(Color::BLACK), occ);
-    //add it up! (NOTE: there is a bug here somewhere! but where???)
-    mg += MG(mobility[5*28 + white_vm.count()]);
-    mg -= MG(mobility[5*28 + black_vm.count()]);
-    eg += EG(mobility[5*28 + white_vm.count()]);
-    eg -= EG(mobility[5*28 + black_vm.count()]); */
-
-    //testpos: 1q6/6pp/8/8/8/8/k5PP/6QK w - - 0 1
-    //without: -134
-    //with: -75
-    //flipped pos: 6qk/K5pp/8/8/8/8/6PP/1Q6 b - - 0 1
-    //without: same
-    //with: same
-
-    //calculate king zone
-    U64 wking_zone = attacks::king(wking_sq);
-    wking_zone |= wking_zone << 8;
-    U64 bking_zone = attacks::king(bking_sq);
-    bking_zone |= bking_zone >> 8;
-
     //evaluate each piece (inefficient); also includes mobility!
     for (uint8_t sq = 0; sq < 64; ++sq) {
         uint8_t pc = (int)board.at<Piece>(sq);
@@ -140,45 +183,11 @@ Value eval(Board board)
             mg += mg_table[pc][sq] * perspective;
             eg += eg_table[pc][sq] * perspective;
             mgPhase += gamephaseInc[pc];
-
-            //eval mobility
-            //0: pawn; 1: knight; 2: bishop; 3: rook; 4: queen; 5: king
-            const PieceType piece_type = board.at<PieceType>(sq);
-            if (piece_type == PieceType::PAWN) continue; //skip pawns
-            if (piece_type == PieceType::KING) continue; //skip king
-
-            U64 atked_squares;
-            switch((int)piece_type)
-            {
-                case 1: //knight
-                    atked_squares = attacks::knight(sq); //don't think we have flip here!
-                    break;
-                case 2: //bishop
-                    atked_squares = attacks::bishop(sq, occ);
-                    break;
-                case 3: //rook
-                    atked_squares = attacks::rook(sq, occ);
-                    break;
-                case 4: //queen (king has already been handled)
-                    atked_squares = attacks::queen(sq, occ);
-                    break;
-            }
-
-            //look at ENEMY king zone, not friendly! so its swapped on the right
-            U64 king_zone_atk = atked_squares & ((perspective == 1) ? bking_zone : wking_zone);
-            mg += MG(kingzone[piece_type * 12 + king_zone_atk.count()]) * perspective;
-            eg += EG(kingzone[piece_type * 12 + king_zone_atk.count()]) * perspective;
-
-            //exclude squares attacked by enemy pawns
-            U64 enemy_pawn_atks = (perspective == -1) ? wpawn_atk : bpawn_atk;
-            atked_squares &= ~enemy_pawn_atks;
-
-            //add it up!
-            ValPair cur_mob_score = mobility[piece_type * 28 + atked_squares.count()];
-            mg += MG(cur_mob_score) * perspective;
-            eg += EG(cur_mob_score) * perspective;
         }
     }
+
+    //Do expensive mobility/king safety evaluation
+    mob_ks_exp(board, mg, eg);
 
     //it was Black to move: invert the evaluation
     if (board.sideToMove() == Color::BLACK)
