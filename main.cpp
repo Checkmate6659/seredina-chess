@@ -7,13 +7,14 @@
 #include "chess.hpp"
 #include "search.hpp"
 #include "eval.hpp"
+#include "bench.hpp"
 using namespace chess;
 
 #define ENGINE_NAME "Seredina v1.0"
 
 #define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
 
-int main()
+int main(int argc, char **argv)
 {
     init_tables();
     if(!alloc_hash(16)) //create 16MB TT
@@ -21,9 +22,15 @@ int main()
         std::cerr << "Cannot allocate 16MB hash table\n";
         return 1;
     }
-    Board board = Board();
+
+    if (argc > 1) //bench
+    {
+        bench();
+        return 0;
+    }
 
     //UCI loop
+    Board board = Board();
     while(true)
     {
 		std::string input_string;
