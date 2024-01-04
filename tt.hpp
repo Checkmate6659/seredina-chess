@@ -65,7 +65,7 @@ HASHE* ProbeHash(Board &board, int8_t ply)
 //look at https://gitlab.com/mhouppin/stash-bot/-/blob/8ec0469cdcef022ee1bc304299f7c0e3e2674652/sources/tt/tt_save.c
 void RecordHash(Board &board, int8_t depth, int32_t val, uint8_t flags, const Move &best_move, int8_t ply)
 {
-    //unimportant if not doing persistent hash table; but needed when i will do that
+    //important for persistent hash table
     if (val == INT32_MAX || val == -INT32_MAX) return; //don't store panic bogus in TT!
 
     //DO NOT STORE when close to a draw!
@@ -82,6 +82,10 @@ void RecordHash(Board &board, int8_t depth, int32_t val, uint8_t flags, const Mo
 
     uint64_t curhash = board.hash();
     HASHE* phashe = &hash_table[curhash % hash_size];
+
+    //avoid replacing "better" search nodes with qs/eval ones
+    // if (depth == 0 && phashe->depth >= 3) //1 or 2 depth can be replaced tho
+    //     return;
 
     phashe->key = curhash;
     phashe->best = best_move.move();
