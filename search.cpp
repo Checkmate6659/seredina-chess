@@ -262,7 +262,6 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     Move best_move = Move::NO_MOVE; //no move
     Movelist moves;
     movegen::legalmoves(moves, board);
-    score_moves(board, moves, best_move, killers[0]); //tt move & killer is useless here
     best_move = moves[0]; //default move (panic; hopefully not used)
 
     int8_t cur_depth = 0; //starting depth - 1 (may need to be increased)
@@ -271,9 +270,12 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
     while (++cur_depth <= depth && !panic)
     {
         //iterate over all legal moves, try find the best one
-        Value best_score = -INT32_MAX; //lower than EVERYTHING (even than value of -infinity)
+        Value best_score = 1 - INT32_MAX; //lower than almost EVERYTHING (even than value of -infinity)
         Move cur_best_move = best_move;
         SearchStack ss = { 1 }; //dont inc and dec ply every time in search_root's loop
+
+        //rescore the moves to re-search previous best move again ASAP
+        score_moves(board, moves, best_move, killers[0]); //tt move & killer is useless here
         for (int i = 0; i < moves.size(); i++) {
             if (cur_depth == 1) //first time: sort moves
                 pick_move(moves, i);
@@ -286,7 +288,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
             //check for draw in main loop as well (to avoid the bot just walking into a draw)
             if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
                 cur_score = 0;
-            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, INT32_MAX - 1, &ss);
+            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, -best_score, &ss);
 
             board.unmakeMove(move);
 
