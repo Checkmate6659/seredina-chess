@@ -58,7 +58,7 @@ inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
 
-            int16_t bonus = SEE(board, moves[i], 0) ? 0x7810 : 0x7001;
+            int16_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001;
             moves[i].setScore(bonus + (int)victim * 16 - (int)aggressor);
         }
         else if (move == cur_killers[0])
