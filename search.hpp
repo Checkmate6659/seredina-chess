@@ -20,6 +20,7 @@ using namespace chess;
 
 extern uint64_t nodes;
 #define MAX_DEPTH 96 //can't be as high as 127! otherwise we can get infinite-looped!
+#define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 
 typedef struct {
     int8_t ply;

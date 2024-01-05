@@ -65,6 +65,10 @@ Value quiesce(Board &board, Value alpha, Value beta)
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
 
+        //SEE pruning: ignore any SEE-losing move (do trades tho)
+        if (!SEE(board, move, QS_SEEPRUNE_THRESH))
+            continue;
+
         board.makeMove(move);
         nodes++; //1 move made = 1 node
         Value cur_score = -quiesce(board, -beta, -alpha);
