@@ -1,9 +1,13 @@
 #ifndef ORDER_H
 #define ORDER_H
 #include "chess.hpp"
+#include "bb_util.hpp"
 #include <algorithm>
 #include <cstdint>
 using namespace chess;
+
+#define MAX_HIST 0x7000
+#define MIN_HIST (-0x8000)
 
 //history table (piece; to)
 int16_t hist[12][64];
@@ -13,7 +17,7 @@ inline void boost_hist(Piece piece, Square to, int8_t depth)
     int boost = depth * depth; //simple depth² (experiment with this!); no overflows!
     int new_hist = hist[(int)piece][to.index()] + boost; //score not constrained yet!
     //constrain history score
-    hist[(int)piece][to.index()] = std::min(0x7800, new_hist); //score can only go up here
+    hist[(int)piece][to.index()] = std::min(MAX_HIST, new_hist); //score can only go up here
     //IF INTRODUCING PENALTIES IN THIS FUNCTION, USE NEXT LINE!
     //hist[(int)piece][to.index()] = std::min(0x7800, std::max(-0x8000, new_hist));
 }
@@ -23,7 +27,7 @@ inline void penal_hist(Piece piece, Square to, int8_t depth)
     int penalty = depth * depth; //simple depth² (experiment with this!); no overflows!
     int new_hist = hist[(int)piece][to.index()] - penalty; //score not constrained yet!
     //constrain history score
-    hist[(int)piece][to.index()] = std::max(-0x8000, new_hist); //score can only go down here
+    hist[(int)piece][to.index()] = std::max(MIN_HIST, new_hist); //score can only go down here
     //IF INTRODUCING BOOSTS IN THIS FUNCTION, USE NEXT LINE!
     //hist[(int)piece][to.index()] = std::min(0x7800, std::max(-0x8000, new_hist));
 }
@@ -53,7 +57,9 @@ inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
-            moves[i].setScore(0x7810 + (int)victim * 16 - (int)aggressor);
+
+            int16_t bonus = SEE(board, moves[i], 0) ? 0x7810 : 0x7001;
+            moves[i].setScore(bonus + (int)victim * 16 - (int)aggressor);
         }
         else if (move == cur_killers[0])
         {
@@ -65,7 +71,6 @@ inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_
         }
         else
         {
-            //moves[i].setScore(-32000);
             moves[i].setScore(hist //piece-to hist score (we have to cap it tho)
                 [(int)board.at<Piece>(moves[i].from())]
                 [moves[i].to().index()]);
