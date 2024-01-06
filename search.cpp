@@ -170,6 +170,17 @@ Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
 
+        //Don't SEE-prune first move (leave possibility if all moves losing)
+        //also, more chance of most/all legal moves losing material when in check
+        if (i != 0 && !incheck && depth <= 7 && ss->ply >= 2)
+        {
+            //TODO: decrease multiplier after doing LMR
+            int32_t see_threshold = (depth + 1) * 100; //ultra BASIC formula
+            //SEE pruning: ignore any big sacrifices
+            if (!SEE(board, move, -see_threshold))
+                continue;
+        }
+
         board.makeMove(move);
         nodes++; //1 move made = 1 node
         ss->ply++;
