@@ -44,6 +44,10 @@ Accumulator calc_acc(Board &board, Color color)
         //NOTE: pc = 6 * color_of_piece + type_of_piece
         int pc = board.at<Piece>(i);
 
+        //skip if no piece!
+        if (pc == (int)Piece::NONE)
+            continue;
+
         //we have to flip the feature when calculating black's accumulator!
         if (color == Color::BLACK)
         {
@@ -58,7 +62,7 @@ Accumulator calc_acc(Board &board, Color color)
         for (int j = 0; j < HL_SIZE; j++)
         {
             //L1_WEIGHTS is column major
-            output.h1[j] += L1_WEIGHTS[feat_index + j * 768];
+            output.h1[j] += L1_WEIGHTS[feat_index * HL_SIZE + j];
         }
     }
 
@@ -77,7 +81,7 @@ float calc_nnue(Accumulator us, Accumulator them)
         output += crelu(them.h1[i]) * L2_WEIGHTS[HL_SIZE + i];
     }
 
-    return output * 100; //scaling number
+    return output * 400; //scaling number
 }
 
 Value eval(Board board)
