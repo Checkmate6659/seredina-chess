@@ -4,17 +4,21 @@ import numpy as np
 
 # Read in data that has been stored as raw 32-bit float samples
 raw = list(np.fromfile("f32.bin", dtype="float32"))
-#print("Raw data:")
-#print(raw)
 
-print("\nL1 Weights (stored column-major):")
-print(raw[:768*16]) #matrix is 768*16 (stored column-major)
-print("L1 Biases:")
-print(raw[768*16 : 768*16 + 16]) #16 biases
+print("#ifndef NN_VALUES_H\n#define NN_VALUES_H\n\n")
 
-print("L2 Weights:")
-print(raw[768*16 + 16 : 768*16 + 16 + 32]) #matrix is 32*1
-print("L2 Bias:")
-print(raw[768*16 + 16 + 32]) #single value
-print(len(raw), 768*16 + 16 + 32 + 1)
+print("const float L1_WEIGHTS[] = {")
+print(str(raw[:768*16])[1:-1]) #matrix is 768*16 (stored column-major)
+print("};\nconst float L1_BIASES[] = {")
+print(str(raw[768*16 : 768*16 + 16])[1:-1]) #16 biases
+
+print("};\nconst float L2_WEIGHTS[] = {")
+print(str(raw[768*16 + 16 : 768*16 + 16 + 32])[1:-1]) #matrix is 32*1
+print("};\nconst float L2_BIAS =")
+print(str(raw[768*16 + 16 + 32])[1:-1]) #single value
+
+print(";\n#endif")
+
+#DEBUG
+#print(len(raw), 768*16 + 16 + 32 + 1)
 
