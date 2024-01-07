@@ -4,8 +4,8 @@ import numpy as np
 
 # Read in data that has been stored as raw 32-bit float samples
 raw = list(np.fromfile("f32.bin", dtype="float32"))
-print("Raw data:")
-print(raw)
+#print("Raw data:")
+#print(raw)
 
 print("\nL1 Weights (stored column-major):")
 print(raw[:768*16]) #matrix is 768*16 (stored column-major)
