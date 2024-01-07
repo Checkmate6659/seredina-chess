@@ -1,7 +1,7 @@
 #ifndef EVAL_H
 #define EVAL_H
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "chess.hpp"
 #include "bb_util.hpp"
@@ -16,6 +16,13 @@ using namespace chess;
 
 typedef int32_t Value;
 typedef int32_t ValPair; //for S pairs (signed so that we can narrow things properly)
+
+//CReLU (between 0 and 1)
+//TODO: change when quantizing
+inline float crelu(float input)
+{
+    return std::min(std::max(input, (float)0), (float)1);
+}
 
 void init_tables();
 Value eval(Board board);
