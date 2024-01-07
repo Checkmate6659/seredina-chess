@@ -62,7 +62,7 @@ Accumulator calc_acc(Board &board, Color color)
         for (int j = 0; j < HL_SIZE; j++)
         {
             //L1_WEIGHTS is column major
-            output.h1[j] += L1_WEIGHTS[feat_index * HL_SIZE + j];
+            output.h1[j] += L1_WEIGHTS[feat_index + j * 768];
         }
     }
 
