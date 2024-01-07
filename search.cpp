@@ -4,6 +4,7 @@
 #include "tt.hpp"
 
 uint64_t nodes = 0;
+uint64_t max_nodes = 0; //only used when SEARCH_NODES is on
 clock_t search_end_time;
 bool panic = false;
 
@@ -29,6 +30,15 @@ void clear_hash()
 
 Value quiesce(Board &board, Value alpha, Value beta)
 {
+    //node budget for "go nodes" command
+#ifdef SEARCH_NODES
+    if (nodes >= max_nodes)
+    {
+        panic = true;
+        return PANIC_VALUE;
+    }
+#endif
+
     //stand pat
     Value static_eval = eval(board);
     if (static_eval > alpha)
@@ -257,6 +267,7 @@ Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack
 Move search_root(Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
+    //NOTE: clock_t is 64-bit signed on this system, but if it is 32-bit this can overflow!
     clock_t start_time = clock();
     clock_t alloc_time_clk = alloc_time_ms * CLOCKS_PER_SEC / 1000;
     search_end_time = start_time + alloc_time_clk;

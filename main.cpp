@@ -2,6 +2,7 @@
 #include <ctime>
 #include <functional>
 #include <iostream>
+#include <string>
 #include <time.h>
 
 #include "chess.hpp"
@@ -111,6 +112,7 @@ int main(int argc, char **argv)
             unsigned movestogo = 30; //default to 30
             unsigned depth = MAX_DEPTH; //default depth = max
             unsigned movetime = 0; //no set movetime = 0 (special value)
+            max_nodes = UINT64_MAX;
             //load parameters
             input_stream >> command;
             while (input_stream)
@@ -119,6 +121,13 @@ int main(int argc, char **argv)
                 {
                     input_stream >> command;
                     depth = std::stoi(command);
+                    movetime = 3600000; //1h of movetime (WARNING: clock_t 32bit -> overflow!!!)
+                }
+                else if (command[0] == 'n') //nodes (ignored if compiled w/o SEARCH_NODES)
+                {
+                    input_stream >> command;
+                    max_nodes = std::stoull(command);
+                    movetime = 3600000; //1h of movetime
                 }
                 else if (command[0] == engine_color) //wtime, btime, winc, binc
                 {
