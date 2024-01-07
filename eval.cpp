@@ -77,7 +77,7 @@ float calc_nnue(Accumulator us, Accumulator them)
         output += crelu(them.h1[i]) * L2_WEIGHTS[HL_SIZE + i];
     }
 
-    return output * 400; //scaling number
+    return output * 100; //scaling number
 }
 
 Value eval(Board board)
@@ -99,7 +99,7 @@ Value eval(Board board)
     float nnue_value = calc_nnue(us, them);
 
     //value that will be returned and stored in eval hash table
-    Value final_value = nnue_value;
+    Value final_value = std::min(std::max(nnue_value, (float)-9999), (float)9999);
     //store it in eval hash table
     // evalhash[hash % EVALHASH_SIZE] = (uint64_t)(uint32_t)final_value | (hash & 0xFFFFFFFF00000000);
     return final_value;

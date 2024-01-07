@@ -4,7 +4,7 @@
 #include "tt.hpp"
 
 uint64_t nodes = 0;
-uint64_t max_nodes = 0; //only used when SEARCH_NODES is on
+uint64_t max_nodes = UINT64_MAX; //only used when SEARCH_NODES is on
 clock_t search_end_time;
 bool panic = false;
 
