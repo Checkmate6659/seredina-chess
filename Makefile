@@ -1,7 +1,8 @@
 all:
 	#g++ -std=c++17 -O3 -Ofast -flto -DNDEBUG -march=native *.cpp
 	#g++ -std=c++17 -O3 -Ofast -flto -s -DNDEBUG -march=native *.cpp
-	clang++ -std=c++17 -O3 -Ofast -flto -s -DNDEBUG -march=native *.cpp
+	#clang++ -std=c++17 -O3 -Ofast -flto -s -DNDEBUG -march=native *.cpp
+	clang++ -std=c++17 -O3 -Ofast -flto -s -DNDEBUG -march=native -ffast-math -fno-signed-zeros *.cpp
 	#g++ -std=c++17 -O3 -flto -march=native *.cpp
 	#g++ -std=c++17 -Wall -Wextra *.cpp
 
