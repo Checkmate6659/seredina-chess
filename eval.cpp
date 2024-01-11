@@ -76,7 +76,8 @@ Accumulator calc_acc(Board &board, Color color)
 
 int calc_nnue(Accumulator us, Accumulator them)
 {
-    //output node
+    //output node (NOTE: even if I reduce the size of the activations, don't reduce this!)
+    //also, reducing everything else to int16_t didn't help yet
     int32_t output = L2_BIAS;
     
     //add up stuff for both accumulators, do activation function here too
