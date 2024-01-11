@@ -1,6 +1,9 @@
 #include "eval.hpp"
 
-#include "nn_values.hpp" //NN weights/biases
+#include "nn_values_quant.hpp" //NN weights/biases
+
+//before quantization: 430799 nodes 1212947 nps
+//after quantization:  473325 nodes 1120383 nps
 
 /* #define EVALHASH_SIZE (1<<18) //real size is 8*this in bytes (2MB here)
 uint64_t evalhash[EVALHASH_SIZE]; */
@@ -9,7 +12,7 @@ uint64_t evalhash[EVALHASH_SIZE]; */
 //NNUE accumulator
 //TODO: UE = incremental update
 typedef struct {
-    float h1[HL_SIZE];
+    int h1[HL_SIZE];
 } Accumulator;
 
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
@@ -69,19 +72,19 @@ Accumulator calc_acc(Board &board, Color color)
     return output; //yeah, kind of ugly and inefficient :(, but we'll fix this later
 }
 
-float calc_nnue(Accumulator us, Accumulator them)
+int calc_nnue(Accumulator us, Accumulator them)
 {
     //output node
-    float output = L2_BIAS;
+    int output = L2_BIAS;
     
     //add up stuff for both accumulators, do activation function here too
     for (int i = 0; i < HL_SIZE; i++)
     {
-        output += crelu(us.h1[i]) * L2_WEIGHTS[i];
-        output += crelu(them.h1[i]) * L2_WEIGHTS[HL_SIZE + i];
+        output += crelu(us.h1[i], QA) * L2_WEIGHTS[i];
+        output += crelu(them.h1[i], QA) * L2_WEIGHTS[HL_SIZE + i];
     }
 
-    return output * 400; //scaling number
+    return output * NN_SCALE / (QA * QB); //scaling number
 }
 
 Value eval(Board board)
@@ -100,10 +103,10 @@ Value eval(Board board)
 
     //I store it in a separate variable for now, if i want to do stuff with it first
     //Like manual scaling for endgames?
-    float nnue_value = calc_nnue(us, them);
+    int nnue_value = calc_nnue(us, them);
 
     //value that will be returned and stored in eval hash table
-    Value final_value = std::min(std::max(nnue_value, (float)-9999), (float)9999);
+    Value final_value = std::min(std::max(nnue_value, -9999), 9999);
     //store it in eval hash table
     // evalhash[hash % EVALHASH_SIZE] = (uint64_t)(uint32_t)final_value | (hash & 0xFFFFFFFF00000000);
     return final_value;
