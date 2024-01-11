@@ -1,9 +1,11 @@
 #include "eval.hpp"
 
-#include "nn_values_quant.hpp" //NN weights/biases
+#include "nn_values_quant_16bit.hpp" //NN weights/biases
 
 //before quantization: 430799 nodes 1212947 nps
 //after quantization:  473325 nodes 1120383 nps
+//after changing QA = 16383 and QB = 256: GARBAGE
+//QA = 4095 and QB = 128: 462146 nodes 1747448 nps
 
 /* #define EVALHASH_SIZE (1<<18) //real size is 8*this in bytes (2MB here)
 uint64_t evalhash[EVALHASH_SIZE]; */
@@ -12,7 +14,7 @@ uint64_t evalhash[EVALHASH_SIZE]; */
 //NNUE accumulator
 //TODO: UE = incremental update
 typedef struct {
-    int h1[HL_SIZE];
+    int32_t h1[HL_SIZE];
 } Accumulator;
 
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
@@ -75,7 +77,7 @@ Accumulator calc_acc(Board &board, Color color)
 int calc_nnue(Accumulator us, Accumulator them)
 {
     //output node
-    int output = L2_BIAS;
+    int32_t output = L2_BIAS;
     
     //add up stuff for both accumulators, do activation function here too
     for (int i = 0; i < HL_SIZE; i++)

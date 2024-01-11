@@ -18,12 +18,12 @@ typedef int32_t Value;
 typedef int32_t ValPair; //for S pairs (signed so that we can narrow things properly)
 
 //QA is useful, QB is only for scaling; NOTE: screlu181 won't be compiler optimized
-#define QA 255
-#define QB 64
+#define QA 4095
+#define QB 128
 #define NN_SCALE 400
 
 //CReLU (between 0 and qmax, which is either QA or QB)
-inline int crelu(int input, int qmax)
+inline int32_t crelu(int32_t input, int32_t qmax)
 {
     return std::min(std::max(input, 0), qmax);
 }
