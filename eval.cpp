@@ -5,6 +5,8 @@
 /* #define EVALHASH_SIZE (1<<18) //real size is 8*this in bytes (2MB here)
 uint64_t evalhash[EVALHASH_SIZE]; */
 
+//before UE: 430799 nodes 1742658 nps
+
 #define HL_SIZE 16 //hidden layer size
 //NNUE accumulator
 //TODO: UE = incremental update
