@@ -28,7 +28,7 @@ void clear_hash()
     for (int i = 0; i < hash_size; i++) hash_table[i] = {};
 }
 
-Value quiesce(Board &board, Value alpha, Value beta)
+Value quiesce(W_Board &board, Value alpha, Value beta)
 {
     //node budget for "go nodes" command
 #ifdef SEARCH_NODES
@@ -103,7 +103,7 @@ Value quiesce(Board &board, Value alpha, Value beta)
     return alpha;
 }
 
-Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack* ss)
+Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchStack* ss)
 {
     if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
         if (panic || clock() > search_end_time ||
@@ -264,7 +264,7 @@ Value search(Board& board, const int depth, Value alpha, Value beta, SearchStack
     return alpha;
 }
 
-Move search_root(Board &board, int alloc_time_ms, int depth)
+Move search_root(W_Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
     //NOTE: clock_t is 64-bit signed on this system, but if it is 32-bit this can overflow!
@@ -337,7 +337,7 @@ Move search_root(Board &board, int alloc_time_ms, int depth)
                 " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
             std::cout << uci::moveToUci(best_move) << " "; //print best move (not in TT)
 
-            Board pv_board(board.getFen()); //copy board to avoid destroying it
+            W_Board pv_board(board.getFen()); //copy board to avoid destroying it
             pv_board.makeMove(best_move); //make best move
 
             //extract PV from TT

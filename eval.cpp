@@ -33,7 +33,7 @@ void init_tables()
 //Calculate accumulator every time (inefficient!!!)
 //TODO: replace with incremental updating system (we need to do it at the root tho)
 //Also need to modify when quantizing
-Accumulator calc_acc(Board &board, Color color)
+Accumulator calc_acc(W_Board &board, Color color)
 {
     //Accumulator, initialize to biases
     Accumulator output;
@@ -86,7 +86,7 @@ float calc_nnue(Accumulator us, Accumulator them)
     return output * 400; //scaling number
 }
 
-Value eval(Board board)
+Value eval(W_Board board)
 {
     //probe eval hash table
     /* uint64_t hash = board.hash();

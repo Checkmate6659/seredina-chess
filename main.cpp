@@ -5,7 +5,7 @@
 #include <string>
 #include <time.h>
 
-#include "chess.hpp"
+#include "chess_ext.hpp"
 #include "search.hpp"
 #include "eval.hpp"
 #include "bench.hpp"
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     }
 
     //UCI loop
-    Board board = Board();
+    W_Board board = W_Board();
     while(true)
     {
 		std::string input_string;

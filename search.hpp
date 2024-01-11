@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <ctime>
 
-#include "chess.hpp"
+#include "chess_ext.hpp"
 #include "eval.hpp"
 using namespace chess;
 
@@ -32,9 +32,9 @@ bool alloc_hash(uint32_t size_mb); //repeating alloc_hash prototype here, to use
 void clear_hash(); //WARNING: this costs a lot of time, as it clears the entire TT!
 void clear_small_tables(); //killers, hist
 
-Value quiesce(Board &board, Value alpha, Value beta, SearchStack* ss);
-Value search(Board &board, int depth, Value alpha, Value beta);
-Move search_root(Board &board, int alloc_time_ms, int depth);
+Value quiesce(W_Board &board, Value alpha, Value beta, SearchStack* ss);
+Value search(W_Board &board, int depth, Value alpha, Value beta);
+Move search_root(W_Board &board, int alloc_time_ms, int depth);
 
 
 #endif

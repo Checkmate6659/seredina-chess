@@ -1,6 +1,6 @@
 #ifndef ORDER_H
 #define ORDER_H
-#include "chess.hpp"
+#include "chess_ext.hpp"
 #include "bb_util.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -33,7 +33,7 @@ inline void penal_hist(Piece piece, Square to, int8_t depth)
 }
 
 //Give a score to all the moves (don't order them immediately!)
-inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_killers)
+inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cur_killers)
 {
     //WARNING: move scores in chess-library are int16_t, so careful with 32-bit hist
     //Also it goes from -32768 to 32767; there are negative values!
@@ -79,7 +79,7 @@ inline void score_moves(Board &board, Movelist &moves, Move &tt_move, Move* cur_
 }
 
 //Same for qsearch
-inline void score_moves_quiesce(Board &board, Movelist &moves)
+inline void score_moves_quiesce(W_Board &board, Movelist &moves)
 {
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];

@@ -2,7 +2,7 @@
 #include <time.h>
 #include <endian.h>
 #include "search.hpp"
-#include "chess.hpp"
+#include "chess_ext.hpp"
 using namespace chess;
 
 // Benchmarks from Bitgenie
@@ -61,7 +61,7 @@ const std::string benchfens[] = {
 
 void bench()
 {
-    Board board = Board();
+    W_Board board = W_Board();
 
     uint64_t total_nodes = 0;
 

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "chess.hpp"
+#include "chess_ext.hpp"
 #include "bb_util.hpp"
 using namespace chess;
 
@@ -25,6 +25,6 @@ inline float crelu(float input)
 }
 
 void init_tables();
-Value eval(Board board);
+Value eval(W_Board board);
 
 #endif

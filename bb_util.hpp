@@ -1,7 +1,7 @@
 #ifndef BB_UTIL_H
 #define BB_UTIL_H
 
-#include "chess.hpp"
+#include "chess_ext.hpp"
 using namespace chess;
 
 //Big pile of bitboard helper functions
@@ -31,7 +31,7 @@ constexpr static uint16_t SEEValues[6] = {
 
 // Static Exchange Evaluation (from Weiss)
 //Returns true if the exchange is better than threshold, and false if it's (strictly) worse
-inline bool SEE(const Board &board, const Move &move, const int32_t threshold)
+inline bool SEE(const W_Board &board, const Move &move, const int32_t threshold)
 {
     Square to = move.to();
     Square from = move.from();
