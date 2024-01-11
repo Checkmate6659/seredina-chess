@@ -5,6 +5,7 @@
 #include <string>
 #include <time.h>
 
+#include "chess.hpp"
 #include "chess_ext.hpp"
 #include "search.hpp"
 #include "eval.hpp"
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
 
     //UCI loop
     W_Board board = W_Board();
+    board.setFen(constants::STARTPOS); //init NNUE accumulator; not required by uci
     while(true)
     {
 		std::string input_string;
