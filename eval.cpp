@@ -7,13 +7,6 @@ uint64_t evalhash[EVALHASH_SIZE]; */
 
 //before UE: 430799 nodes 1742658 nps
 
-#define HL_SIZE 16 //hidden layer size
-//NNUE accumulator
-//TODO: UE = incremental update
-typedef struct {
-    float h1[HL_SIZE];
-} Accumulator;
-
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
 void init_tables()
 {
@@ -33,10 +26,10 @@ void init_tables()
 //Calculate accumulator every time (inefficient!!!)
 //TODO: replace with incremental updating system (we need to do it at the root tho)
 //Also need to modify when quantizing
-Accumulator calc_acc(W_Board &board, Color color)
+NNUEAccumulator calc_acc(W_Board &board, Color color)
 {
     //Accumulator, initialize to biases
-    Accumulator output;
+    NNUEAccumulator output;
     for (int j = 0; j < HL_SIZE; j++)
         output.h1[j] = L1_BIASES[j];
 
@@ -71,7 +64,7 @@ Accumulator calc_acc(W_Board &board, Color color)
     return output; //yeah, kind of ugly and inefficient :(, but we'll fix this later
 }
 
-float calc_nnue(Accumulator us, Accumulator them)
+float calc_nnue(NNUEAccumulator us, NNUEAccumulator them)
 {
     //output node
     float output = L2_BIAS;
@@ -95,7 +88,7 @@ Value eval(W_Board board)
         return (Value)(evalhash_entry & UINT32_MAX); */
 
     //calculate accumulators
-    Accumulator us, them;
+    NNUEAccumulator us, them;
     //TODO: UE!!!
     us = calc_acc(board, board.sideToMove());
     them = calc_acc(board, !board.sideToMove());

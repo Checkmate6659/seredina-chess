@@ -4,6 +4,14 @@
 #include "chess.hpp"
 using namespace chess;
 
+#define HL_SIZE 16 //NN hidden layer size
+
+//NNUE accumulator
+typedef struct {
+    float h1[HL_SIZE];
+} NNUEAccumulator;
+
+
 //https://disservin.github.io/chess-library/pages/extending-the-library.html
 class W_Board : public Board {
     public:
