@@ -6,6 +6,7 @@
 uint64_t evalhash[EVALHASH_SIZE]; */
 
 //before UE: 430799 nodes 1742658 nps
+//after: 430802 nodes 2855603 nps
 
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
 void init_tables()
@@ -89,9 +90,20 @@ Value eval(W_Board board)
 
     //calculate accumulators
     NNUEAccumulator us, them;
-    //TODO: UE!!!
-    us = calc_acc(board, board.sideToMove());
-    them = calc_acc(board, !board.sideToMove());
+    // us = calc_acc(board, board.sideToMove());
+    // them = calc_acc(board, !board.sideToMove());
+
+    //EFFICIENT updates!
+    if (board.sideToMove() == Color::WHITE)
+    {
+        us = board.white_acc;
+        them = board.black_acc;
+    }
+    else
+    {
+        us = board.black_acc;
+        them = board.white_acc;
+    }
 
     //I store it in a separate variable for now, if i want to do stuff with it first
     //Like manual scaling for endgames?
