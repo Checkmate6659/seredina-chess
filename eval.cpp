@@ -5,8 +5,8 @@
 /* #define EVALHASH_SIZE (1<<18) //real size is 8*this in bytes (2MB here)
 uint64_t evalhash[EVALHASH_SIZE]; */
 
-//before UE: 430799 nodes 1742658 nps
-//after: 430802 nodes 2855603 nps
+//16 hidden layer: 430802 nodes 2855603 nps
+//32 hidden layer: 431456 nodes 2825088 nps
 
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
 void init_tables()
