@@ -7,6 +7,7 @@ uint64_t evalhash[EVALHASH_SIZE]; */
 
 //16 hidden layer: 430802 nodes 2855603 nps
 //32 hidden layer: 431456 nodes 2825088 nps
+//64 hidden layer: 451791 nodes 2551698 nps
 
 //for now this function does nothing (TODO: see if eval hash gains with larger NNUEs?)
 void init_tables()
