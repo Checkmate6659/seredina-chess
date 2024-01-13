@@ -114,7 +114,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         }
 
     //are we in a PV-node? (useless for now)
-    //bool pv_node = (beta - alpha > 1);
+    bool pv_node = (beta - alpha > 1);
 
     //test if we are in check
     bool incheck = board.inCheck();
@@ -164,6 +164,29 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         } */
     }
 
+    //Speculative prunings (NMP, RFP, ...)
+    if (!pv_node)
+    {
+        //NMP: enough depth, not in check, no zugzwang condition
+        if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
+        {
+            int reduced_depth = depth - 2; //constant R = 2
+            reduced_depth = std::max(reduced_depth, 1); //don't use depth < 1
+
+            board.makeNullMove(); //make null move
+            ss->ply++; //inc ply, so that the indices into stuff is correct
+
+            Value nmp_val = -search(board, reduced_depth - 1, -beta, -alpha, ss);
+
+            ss->ply--;
+            board.unmakeNullMove();
+
+            if (nmp_val >= beta) //null move search failed high
+                //TODO: experiment with clamping it by beta + some constant
+                return std::min(nmp_val, 9999); //don't return bad mate scores!
+        }
+    }
+
     Movelist moves;
     movegen::legalmoves(moves, board);
 
@@ -197,7 +220,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
 
         Value cur_score;
         //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
-        if (i == 0 || true) //PVS DISABLED
+        if (i == 0)
         //if (alpha < 256 - INT32_MAX || move == tt_move) //mate score warning! (???)
         {
             cur_score = -search(board, new_depth - 1, -beta, -alpha, ss);
