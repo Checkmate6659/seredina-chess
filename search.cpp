@@ -145,8 +145,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     bool incheck = board.inCheck();
 
     //static evaluation
-    if (incheck && ss->ply != 0) //at root i don't think we have a choice (TODO: fix)
-        ss->eval[ss->ply] = -ss->eval[ss->ply - 1]; //in check: keep previous eval
+    if (incheck && ss->ply > 1) //for low ply i don't think we have a choice (TODO: fix)
+        //IMPORTANT: negating prev ply doesn't work (last move could have hung a piece)
+        ss->eval[ss->ply] = ss->eval[ss->ply - 2]; //in check: keep previous eval
     else
         ss->eval[ss->ply] = eval(board); //static eval
 
