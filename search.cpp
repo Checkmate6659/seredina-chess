@@ -197,7 +197,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         {
             //NOTE: improving => more confidence that position is good =>
             //prune less on alpha, but more on beta (like in rfp)
-            Value rfp_val = static_eval - RFP_MARGIN * (depth - improving); //fixed margin for now, no improving yet
+            Value rfp_val = static_eval - RFP_MARGIN * (depth/*  - improving */); //fixed margin for now, no improving yet
             if (rfp_val >= beta)
                 return static_eval; //fail soft (NOTE: CPW impl wrong!)
         }
