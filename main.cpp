@@ -96,7 +96,7 @@ int main(int argc, char **argv)
                 }
                 board.setFen(fen_string);
             }
-            std::cout << eval(board) << std::endl; //DEBUG
+            // std::cout << eval(board) << std::endl; //DEBUG
             //load moves after fen string (or startpos)
             input_stream >> command;
             if (command[0] != 'm') break; //no moves to load
