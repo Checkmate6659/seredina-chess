@@ -145,15 +145,16 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     bool incheck = board.inCheck();
 
     //static evaluation
-    if (incheck && ss->ply > 1) //for low ply i don't think we have a choice (TODO: fix)
+    //if in check: just set static_eval to some very low value
+    if (incheck) //to indicate that we don't have a static eval!!!
         //IMPORTANT: negating prev ply doesn't work (last move could have hung a piece)
-        ss->eval[ss->ply] = ss->eval[ss->ply - 2]; //in check: keep previous eval
+        ss->eval[ss->ply] = NO_SCORE; //in check: set to sth TINY (no chance!)
     else
         ss->eval[ss->ply] = eval(board); //static eval
 
     //static_eval variable; improving (with ply >= 2)
     Value static_eval = ss->eval[ss->ply];
-    bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2];
+    bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2] && ss->eval[ss->ply-2] != NO_SCORE;
 
     //original depth is const; to keep original depth value
     depth += incheck; //check extension

@@ -22,6 +22,9 @@ using namespace chess;
 #define DRAW 0 //deterministic; more chance of repetition
 #endif
 
+//complete absence of score: very low number
+#define NO_SCORE (INT32_MIN + 2) //make this not coincide with -PANIC_VALUE
+
 //does value represent game over score?
 #define IS_GAME_OVER(val) (std::abs(val) > 9999)
 
