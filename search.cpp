@@ -144,6 +144,16 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     //test if we are in check
     bool incheck = board.inCheck();
 
+    //static evaluation
+    if (incheck && ss->ply != 0) //at root i don't think we have a choice (TODO: fix)
+        ss->eval[ss->ply] = -ss->eval[ss->ply - 1]; //in check: keep previous eval
+    else
+        ss->eval[ss->ply] = eval(board); //static eval
+
+    //static_eval variable; improving (with ply >= 2)
+    Value static_eval = ss->eval[ss->ply];
+    bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2];
+
     //original depth is const; to keep original depth value
     depth += incheck; //check extension
 
@@ -189,8 +199,18 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     }
 
     //Speculative prunings (NMP, RFP, ...)
-    if (!pv_node && ss->ply != 0)
+    if (!pv_node && ss->ply != 0) //ss->ply != 0 implied by !pv_node, but i want it in for now
     {
+        //RFP: don't use it with mate scores (otherwise bad things happen)
+        if(!incheck && !IS_GAME_OVER(beta) && depth <= RFP_DEPTH)
+        {
+            //NOTE: improving => more confidence that position is good =>
+            //prune less on alpha, but more on beta (like in rfp)
+            Value rfp_val = static_eval - RFP_MARGIN * (depth - improving); //fixed margin for now, no improving yet
+            if (rfp_val >= beta)
+                return static_eval; //fail soft (NOTE: CPW impl wrong!)
+        }
+
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
         {

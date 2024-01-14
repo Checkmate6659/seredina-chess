@@ -22,7 +22,9 @@ using namespace chess;
 #define DRAW 0 //deterministic; more chance of repetition
 #endif
 
-extern uint64_t nodes, max_nodes;
+//does value represent game over score?
+#define IS_GAME_OVER(val) (std::abs(val) > 9999)
+
 #define MAX_DEPTH 96 //can't be as high as 127! otherwise we can get infinite-looped!
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 
@@ -42,6 +44,11 @@ const int see_multiplier = 99, see_const = 117; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
 const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 #endif
+
+#define RFP_DEPTH 7
+#define RFP_MARGIN 100 //TODO: tweak
+
+extern uint64_t nodes, max_nodes;
 
 typedef struct {
     int8_t ply;
