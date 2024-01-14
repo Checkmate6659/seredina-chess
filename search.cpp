@@ -1,4 +1,5 @@
 #include "search.hpp"
+#include "chess.hpp"
 #include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
 #include "tt.hpp"
@@ -9,6 +10,19 @@ clock_t search_end_time;
 bool panic = false;
 
 Move killers[MAX_DEPTH][2];
+
+// int lmr_table[MAX_DEPTH][constants::MAX_MOVES];
+void init_search_tables()
+{
+    /* for (int depth = 0; depth < MAX_DEPTH; depth++)
+    {
+        for (int i = 0; i < constants::MAX_MOVES; i++)
+        {
+            //basic stuff for now
+            lmr_table[depth][i] = depth / 3; //log1p(i);
+        }
+    } */
+}
 
 //clear killer move table and history
 void clear_small_tables()
@@ -218,6 +232,9 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         nodes++; //1 move made = 1 node
         ss->ply++;
 
+        //does current move give check?
+        bool gives_check = board.inCheck();
+
         Value cur_score;
         //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
         if (i == 0)
@@ -227,8 +244,16 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         }
         else //not first move
         {
-            //zws
-            cur_score = -search(board, new_depth - 1, -alpha - 1, -alpha, ss);
+            //ZWS with LMR if proper conditions
+            int zws_depth = new_depth;
+            //these are LMR conditions
+            if (i >= 3 && depth >= 1 && !pv_node && //TODO: forbid promotions?
+                !board.isCapture(move) /* && !incheck && !gives_check */)
+            {
+                zws_depth -= 1;//lmr_table[depth][i]; //use precalculated table
+                zws_depth = std::max(zws_depth, 1); //prevent depth going below 0
+            }
+            cur_score = -search(board, zws_depth - 1, -alpha - 1, -alpha, ss);
 
             if (cur_score > alpha && cur_score < beta) //beat alpha: re-search
             {

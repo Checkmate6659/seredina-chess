@@ -18,7 +18,8 @@ using namespace chess;
 
 int main(int argc, char **argv)
 {
-    init_tables();
+    init_tables(); //does this do anything? (not sure)
+    init_search_tables();
     if(!alloc_hash(16)) //create 16MB TT
     {
         std::cerr << "Cannot allocate 16MB hash table\n";

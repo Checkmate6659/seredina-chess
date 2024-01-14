@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstdint>
 #include <ctime>
+#include <cmath>
 
 #include "chess_ext.hpp"
 #include "eval.hpp"
@@ -28,6 +29,7 @@ typedef struct {
     int8_t ply;
 } SearchStack;
 
+void init_search_tables();
 bool alloc_hash(uint32_t size_mb); //repeating alloc_hash prototype here, to use in main
 void clear_hash(); //WARNING: this costs a lot of time, as it clears the entire TT!
 void clear_small_tables(); //killers, hist
