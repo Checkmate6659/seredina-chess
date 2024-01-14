@@ -11,17 +11,19 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-// int lmr_table[MAX_DEPTH][constants::MAX_MOVES];
+int lmr_table[MAX_DEPTH][constants::MAX_MOVES];
 void init_search_tables()
 {
-    /* for (int depth = 0; depth < MAX_DEPTH; depth++)
+    for (int depth = 0; depth < MAX_DEPTH; depth++)
     {
         for (int i = 0; i < constants::MAX_MOVES; i++)
         {
-            //basic stuff for now
-            lmr_table[depth][i] = depth / 3; //log1p(i);
+            if (depth == 0 || i == 0) //for safety! (also to avoid doing log(0))
+                lmr_table[depth][i] = 0;
+            else //log*log formula (TODO: tune constants!)
+                lmr_table[depth][i] = std::round(0.8 + log(depth) * log(i) * 0.4);
         }
-    } */
+    }
 }
 
 //clear killer move table and history
@@ -117,7 +119,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
     return alpha;
 }
 
-Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchStack* ss)
+Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
 {
     if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
         if (panic || clock() > search_end_time ||
@@ -134,10 +136,9 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     bool incheck = board.inCheck();
 
     //original depth is const; to keep original depth value
-    int new_depth = depth;
-    new_depth += incheck; //check extension
+    depth += incheck; //check extension
 
-    if (new_depth <= 0 && ss->ply != 0) //don't get in qsearch when we are in check!
+    if (depth <= 0 && ss->ply != 0) //don't get in qsearch when we are in check!
         return quiesce(board, alpha, beta);
 
     //check repetition BEFORE probing (no worry about priority for repetition!!!)
@@ -240,24 +241,26 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         if (i == 0)
         //if (alpha < 256 - INT32_MAX || move == tt_move) //mate score warning! (???)
         {
-            cur_score = -search(board, new_depth - 1, -beta, -alpha, ss);
+            cur_score = -search(board, depth - 1, -beta, -alpha, ss);
         }
         else //not first move
         {
             //ZWS with LMR if proper conditions
-            int zws_depth = new_depth;
+            int lmr = 0; //LMR reduction
             //these are LMR conditions
-            if (i >= 3 && depth >= 1 && !pv_node && //TODO: forbid promotions?
-                !board.isCapture(move) /* && !incheck && !gives_check */)
+            if (depth >= 3 && i >= 4 //don't LMR good captures and promos either
+                && move.score() < 0x7810 /* && !incheck && !gives_check */)
             {
-                zws_depth -= 1;//lmr_table[depth][i]; //use precalculated table
-                zws_depth = std::max(zws_depth, 1); //prevent depth going below 0
-            }
-            cur_score = -search(board, zws_depth - 1, -alpha - 1, -alpha, ss);
+                lmr = lmr_table[depth][i]; //use precalculated table
+                // lmr -= pv_node; //reduce less in PV-node
 
-            if (cur_score > alpha && cur_score < beta) //beat alpha: re-search
+                lmr = std::max(std::min(lmr, depth - 2), 0); //don't negative-reduce
+            }
+            cur_score = -search(board, depth - 1 - lmr, -alpha - 1, -alpha, ss);
+
+            if (cur_score > alpha && (lmr > 0 || cur_score < beta)) //beat alpha: re-search
             {
-                cur_score = -search(board, new_depth - 1, -beta, -alpha, ss);
+                cur_score = -search(board, depth - 1, -beta, -alpha, ss);
             }
         }
 
@@ -283,7 +286,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
             if (!board.isCapture(move))
             {
                 //boost history
-                boost_hist(board.at<Piece>(move.from()), move.to(), new_depth);
+                boost_hist(board.at<Piece>(move.from()), move.to(), depth);
             }
 
             if (cur_score >= beta) //beta cutoff (fail soft)
@@ -298,7 +301,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
 
                 //store in hash table (beta = lower bound flag)
                 //why does fail soft give really bad results?
-                RecordHash(board, new_depth, beta, hashfBETA, move, ss->ply);
+                RecordHash(board, depth, beta, hashfBETA, move, ss->ply);
                 return cur_score; //fail soft here: no effect!
             }
         }
@@ -307,7 +310,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
             if (!board.isCapture(move))
             {
                 //penalize history
-                penal_hist(board.at<Piece>(move.from()), move.to(), new_depth);
+                penal_hist(board.at<Piece>(move.from()), move.to(), depth);
             }
         }
     }
@@ -315,7 +318,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     {
         //Storing tt_move instead of best_move when failing low makes like 0 change
         uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
-        RecordHash(board, new_depth, alpha, hashf, best_move, ss->ply);
+        RecordHash(board, depth, alpha, hashf, best_move, ss->ply);
     }
     return alpha;
 }
