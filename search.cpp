@@ -137,11 +137,11 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     int new_depth = depth;
     new_depth += incheck; //check extension
 
-    if (new_depth == 0) //don't get in qsearch when we are in check!
+    if (new_depth <= 0 && ss->ply != 0) //don't get in qsearch when we are in check!
         return quiesce(board, alpha, beta);
 
     //check repetition BEFORE probing (no worry about priority for repetition!!!)
-    if (board.isRepetition(1))
+    if (board.isRepetition(1) && ss->ply != 0)
         return DRAW;
 
     //probe hash table
@@ -152,7 +152,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     if (phashe != nullptr /* && board.halfMoveClock() <= 60 */) //we have a hit
     {
         //entry has enough depth
-        if (phashe->depth >= depth && ss->ply > 1) {
+        if (phashe->depth >= depth && ss->ply > 1) { //Test this with ss->ply >= 1 instead
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -179,7 +179,7 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     }
 
     //Speculative prunings (NMP, RFP, ...)
-    if (!pv_node)
+    if (!pv_node && ss->ply != 0)
     {
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
@@ -204,9 +204,9 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     Movelist moves;
     movegen::legalmoves(moves, board);
 
-    if (moves.size() == 0) //no legal moves
+    if (moves.size() == 0 && ss->ply != 0) //no legal moves
         return incheck ? (ss->ply + 128 - INT32_MAX) : DRAW; //return checkmate or stalemate
-    if (board.isHalfMoveDraw()) //repetitions or 50-move rule
+    if (board.isHalfMoveDraw() && ss->ply != 0) //repetitions or 50-move rule
         return DRAW;
 
     //score moves
@@ -265,12 +265,20 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
         board.unmakeMove(move);
 
         //score checks probably useless! (still, avoid storing PANIC_VALUE in TT!)
-        if (panic || cur_score == PANIC_VALUE || cur_score == -PANIC_VALUE) return PANIC_VALUE;
+        if (panic || cur_score == PANIC_VALUE || cur_score == -PANIC_VALUE)
+        {
+            if (ss->ply != 0) //if not at root, just keep the panic chain going
+                return PANIC_VALUE;
+            else
+                return alpha; //allow partial search results to be returned
+        }
 
         if (cur_score > alpha)
         {
             alpha = cur_score;
             best_move = move; //update best move
+            if (ss->ply == 0) //get best root move (IMPORTANT!)
+                ss->best_root_move = move;
 
             if (!board.isCapture(move))
             {
@@ -312,6 +320,9 @@ Value search(W_Board& board, const int depth, Value alpha, Value beta, SearchSta
     return alpha;
 }
 
+//before integrating root node into search(): 406152 nodes 2434015 nps
+//after: 289680 nodes 2308483 nps NOPE garbage it disconnects when threefold repetition!
+//Did a *few* changes, didn't change bench: not immediately returning draw, mate or TT at root
 Move search_root(W_Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
@@ -340,38 +351,19 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
 
     int8_t cur_depth = 0; //starting depth - 1 (may need to be increased)
 
+    SearchStack ss;
+    ss.ply = 0;
+    // ss.eval[0] = eval(board); //initial eval
+
     Value old_best = -INT32_MAX; //last finished iteration score, for partial search result
     while (++cur_depth <= depth && !panic)
     {
         //iterate over all legal moves, try find the best one
-        Value best_score = 1 - INT32_MAX; //lower than almost EVERYTHING (even than value of -infinity)
-        Move cur_best_move = best_move;
-        SearchStack ss = { 1 }; //dont inc and dec ply every time in search_root's loop
+        Value best_score = search(board, cur_depth, 1 - INT32_MAX, INT32_MAX - 1, &ss);
+        Move cur_best_move = ss.best_root_move; //get best root move out!
 
-        //rescore the moves to re-search previous best move again ASAP
-        score_moves(board, moves, best_move, killers[0]); //tt move & killer is useless here
-        for (int i = 0; i < moves.size(); i++) {
-            if (cur_depth == 1) //first time: sort moves
-                pick_move(moves, i);
-            const auto move = moves[i];
-
-            nodes++;
-            board.makeMove(move);
-
-            Value cur_score;
-            //check for draw in main loop as well (to avoid the bot just walking into a draw)
-            if (board.isRepetition(1) || board.isHalfMoveDraw()) //repetitions or 50-move rule
-                cur_score = 0;
-            else cur_score = -search(board, cur_depth - 1, 1 - INT32_MAX, -best_score, &ss);
-
-            board.unmakeMove(move);
-
-            if (cur_score > best_score && !panic) //new best move AND not bogus
-            {
-                cur_best_move = move;
-                best_score = cur_score;
-            }
-        }
+        //record this in TT so that next ply will immediately go for current best move
+        RecordHash(board, cur_depth, best_score, hashfEXACT, best_move, 0);
 
         if (!panic || best_score >= old_best) //normal OR partial search results
         {

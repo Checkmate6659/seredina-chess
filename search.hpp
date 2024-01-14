@@ -27,6 +27,9 @@ extern uint64_t nodes, max_nodes;
 
 typedef struct {
     int8_t ply;
+    Move best_root_move;
+    Value eval[MAX_DEPTH];
+    //TODO: add killers and history here, make this suitable for multithreading later!
 } SearchStack;
 
 void init_search_tables();
