@@ -153,7 +153,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (phashe != nullptr /* && board.halfMoveClock() <= 60 */) //we have a hit
     {
         //entry has enough depth
-        if (phashe->depth >= depth && ss->ply > 1) { //Test this with ss->ply >= 1 instead
+        if (phashe->depth >= depth && ss->ply >= 1) { //Test this with ss->ply >= 1 instead
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -173,9 +173,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     else //TT miss
     {
         //IIR (reducing by 1)
-        /* if (new_depth >= 3 && pv_node)
+        /* if (depth >= 3 && pv_node)
         {
-            new_depth -= 1;
+            depth -= 1;
         } */
     }
 
