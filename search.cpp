@@ -173,10 +173,10 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     else //TT miss
     {
         //IIR (reducing by 1)
-        /* if (depth >= 3 && pv_node)
+        if (depth >= 3 && pv_node)
         {
             depth -= 1;
-        } */
+        }
     }
 
     //Speculative prunings (NMP, RFP, ...)
@@ -248,8 +248,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             //ZWS with LMR if proper conditions
             int lmr = 0; //LMR reduction
             //these are LMR conditions
-            if (depth >= 3 && i >= 4 //don't LMR good captures and promos either
-                && move.score() < 0x7810 /* && !incheck && !gives_check */)
+            if (depth >= 3 && i >= 4/* 3 + 1*(tt_move == Move::NO_MOVE) */
+                //don't LMR good captures and promos
+                && move.score() < 0x7810 /*&& !incheck && !gives_check */)
             {
                 lmr = lmr_table[depth][i]; //use precalculated table
                 // lmr -= pv_node; //reduce less in PV-node
