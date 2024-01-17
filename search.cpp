@@ -204,7 +204,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (!pv_node && ss->ply != 0) //ss->ply != 0 implied by !pv_node, but i want it in for now
     {
         //RFP: don't use it with mate scores (otherwise bad things happen)
-        if(!incheck && !IS_GAME_OVER(beta) && depth <= RFP_DEPTH)
+        if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= RFP_DEPTH)
         {
             //NOTE: improving => more confidence that position is good =>
             //prune less on alpha, but more on beta (like in rfp)
