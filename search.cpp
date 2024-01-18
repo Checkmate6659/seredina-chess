@@ -10,7 +10,7 @@ int iir_depth = 3; //IIR minimum depth
 int nmp_const = 2; //NMP constant term
 int see_multiplier = 100, see_const = 100; //SEE linear params
 int lmr_mindepth = 3, lmr_reduceafter = 4;
-float lmr_pv = 0, lmr_improving = 0;
+float lmr_pv = 0.0, lmr_improving = 0.0;
 #endif
 
 uint64_t nodes = 0;

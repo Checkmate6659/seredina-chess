@@ -12,7 +12,7 @@
 #include "eval.hpp"
 using namespace chess;
 
-#define TUNING //enable tuning mode
+// #define TUNING //enable tuning mode
 //#define SEARCH_NODES //enable "go nodes"; maybe slows down engine a bit?
 
 #define PANIC_VALUE INT32_MAX
@@ -26,19 +26,22 @@ extern uint64_t nodes, max_nodes;
 #define MAX_DEPTH 96 //can't be as high as 127! otherwise we can get infinite-looped!
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 
-//parameters: extern when tuning, const when not tuning
+//parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING
-#define PARAM extern
+extern float lmr_f1, lmr_f2; //used in LMR lookup table initialization
+extern int iir_depth; //IIR minimum depth
+extern int nmp_const; //NMP constant term
+extern int see_multiplier, see_const; //SEE linear parameters
+extern int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
+extern float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
 #else
-#define PARAM const
+const float lmr_f1 = 0.8, lmr_f2 = 0.4; //used in LMR lookup table initialization
+const int iir_depth = 3; //IIR minimum depth
+const int nmp_const = 2; //NMP constant term
+const int see_multiplier = 100, see_const = 100; //SEE linear parameters
+const int lmr_mindepth = 3, lmr_reduceafter = 4; //min depth and first reduced move
+const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 #endif
-
-PARAM float lmr_f1, lmr_f2; //used in LMR lookup table initialization
-PARAM int iir_depth; //IIR minimum depth
-PARAM int nmp_const; //NMP constant term
-PARAM int see_multiplier, see_const; //SEE linear parameters
-PARAM int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
-PARAM float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
 
 typedef struct {
     int8_t ply;

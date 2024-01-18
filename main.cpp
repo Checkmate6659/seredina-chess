@@ -68,6 +68,7 @@ int main(int argc, char **argv)
                 std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";
                 //options
                 std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
+#ifdef TUNING
                 for (int i = 0; i < sizeof(TUNING_TYPES) - 1; i++) //TUNING_TYPES is an array of characters
                 {
                     std::cout << "option name P" << i << " type spin default ";
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
                     }
                     std::cout << " min -1000000 max 1000000\n";
                 }
-
+#endif
                 //uciok
                 std::cout << "uciok\n";
             }
