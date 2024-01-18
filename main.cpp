@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cstdlib>
 #include <ctime>
 #include <functional>
 #include <iostream>
@@ -15,6 +16,17 @@ using namespace chess;
 #define ENGINE_NAME "Seredina v1.1"
 
 #define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
+
+#ifdef TUNING
+const void* TUNING_PARAMS[] = {
+    &lmr_f1, &lmr_f2,
+    &iir_depth,
+    &nmp_const,
+    &see_multiplier, &see_const,
+    &lmr_mindepth, &lmr_reduceafter, /* &lmr_pv, &lmr_improving */};
+//F = float (all *1000); I = int
+const char TUNING_TYPES[] = "FFIIIIII"; //"FFIIIIIIFF"
+#endif
 
 int main(int argc, char **argv)
 {
@@ -68,7 +80,7 @@ int main(int argc, char **argv)
             case 's': //setoption
             input_stream >> command; //"name"
             input_stream >> command; //option name
-            if (command[0] == 'H')
+            if (command[0] == 'H') //hash
             {
                 input_stream >> command; //"value"
                 input_stream >> command; //size in mb
@@ -80,6 +92,27 @@ int main(int argc, char **argv)
                     return 1;
                 }
             }
+#ifdef TUNING
+            else if (command[0] == 'P') //param in tuning, of the form Pxx where xx is a number
+            {
+                int index = std::atoi(command.c_str() + 1); //drop the 'P'
+                input_stream >> command; //"value"
+                input_stream >> command; //parameter value
+                int value = std::stoi(command);
+                // printf("%d %d\n", index, value);
+
+                char type = TUNING_TYPES[index];
+                if (type == 'F') //float
+                {
+                    *(float*)TUNING_PARAMS[index] = value / 1000.; //divide by 1000
+                }
+                else //int
+                {
+                    *(int*)TUNING_PARAMS[index] = value;
+                }
+                init_search_tables(); //reinitialize LMR
+            }
+#endif
             break;
             case 'p': //position
             input_stream >> command; //get new word
