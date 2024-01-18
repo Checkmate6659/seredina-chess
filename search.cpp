@@ -4,6 +4,13 @@
 #include "posix.hpp" //kbhit equivalent on linux
 #include "tt.hpp"
 
+#ifdef TUNING
+float lmr_f1 = 0.8, lmr_f2 = 0.4; //used in LMR lookup table initialization
+int iir_depth = 3; //IIR minimum depth
+int nmp_const = 2; //NMP constant term
+int see_multiplier = 100, see_const = 100; //SEE linear params
+#endif
+
 uint64_t nodes = 0;
 uint64_t max_nodes = UINT64_MAX; //only used when SEARCH_NODES is on
 clock_t search_end_time;
@@ -21,7 +28,7 @@ void init_search_tables()
             if (depth == 0 || i == 0) //for safety! (also to avoid doing log(0))
                 lmr_table[depth][i] = 0;
             else //log*log formula (TODO: tune constants!)
-                lmr_table[depth][i] = std::round(0.8 + log(depth) * log(i) * 0.4);
+                lmr_table[depth][i] = std::round(lmr_f1 + log(depth) * log(i) * lmr_f2);
         }
     }
 }
@@ -92,7 +99,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
         const auto move = moves[i];
 
         //SEE pruning: ignore any SEE-losing move (do trades tho)
-        if (!SEE(board, move, QS_SEEPRUNE_THRESH))
+        if (!SEE(board, move, QS_SEEPRUNE_THRESH)) //TODO: try diff values
             continue;
 
         board.makeMove(move);
@@ -173,7 +180,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     else //TT miss
     {
         //IIR (reducing by 1)
-        if (depth >= 3 && pv_node)
+        if (depth >= iir_depth && pv_node)
         {
             depth -= 1;
         }
@@ -185,7 +192,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
         {
-            int reduced_depth = depth - 2; //constant R = 2
+            int reduced_depth = depth - nmp_const; //constant R = 2
             reduced_depth = std::max(reduced_depth, 1); //don't use depth < 1
 
             board.makeNullMove(); //make null move
@@ -223,7 +230,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         if (i != 0 && !incheck && depth <= 7 && ss->ply >= 2)
         {
             //TODO: decrease multiplier after doing LMR
-            int32_t see_threshold = (depth + 1) * 100; //ultra BASIC formula
+            int32_t see_threshold = depth * see_multiplier + see_const; //ultra BASIC formula
             //SEE pruning: ignore any big sacrifices
             if (!SEE(board, move, -see_threshold))
                 continue;
@@ -324,9 +331,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     return alpha;
 }
 
-//before integrating root node into search(): 406152 nodes 2434015 nps
-//after: 289680 nodes 2308483 nps NOPE garbage it disconnects when threefold repetition!
-//Did a *few* changes, didn't change bench: not immediately returning draw, mate or TT at root
+//i want to make the thing tunable
+//before: 1668229
+//after:  ???????
 Move search_root(W_Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
