@@ -37,6 +37,8 @@ PARAM float lmr_f1, lmr_f2; //used in LMR lookup table initialization
 PARAM int iir_depth; //IIR minimum depth
 PARAM int nmp_const; //NMP constant term
 PARAM int see_multiplier, see_const; //SEE linear parameters
+PARAM int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
+PARAM float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
 
 typedef struct {
     int8_t ply;

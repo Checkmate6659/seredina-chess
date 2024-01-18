@@ -9,6 +9,8 @@ float lmr_f1 = 0.8, lmr_f2 = 0.4; //used in LMR lookup table initialization
 int iir_depth = 3; //IIR minimum depth
 int nmp_const = 2; //NMP constant term
 int see_multiplier = 100, see_const = 100; //SEE linear params
+int lmr_mindepth = 3, lmr_reduceafter = 4;
+float lmr_pv = 0, lmr_improving = 0;
 #endif
 
 uint64_t nodes = 0;
@@ -255,12 +257,13 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             //ZWS with LMR if proper conditions
             int lmr = 0; //LMR reduction
             //these are LMR conditions
-            if (depth >= 3 && i >= 4/* 3 + 1*(tt_move == Move::NO_MOVE) */
+            if (depth >= lmr_mindepth && i >= lmr_reduceafter/* 3 + 1*(tt_move == Move::NO_MOVE) */
                 //don't LMR good captures and promos
                 && move.score() < 0x7810 /*&& !incheck && !gives_check */)
             {
                 lmr = lmr_table[depth][i]; //use precalculated table
-                // lmr -= pv_node; //reduce less in PV-node
+                lmr -= pv_node * lmr_pv; //reduce less in PV-node (TODO)
+                lmr -= 0 * lmr_improving; //reduce less when improving (TODO)
 
                 lmr = std::max(std::min(lmr, depth - 2), 0); //don't negative-reduce
             }
