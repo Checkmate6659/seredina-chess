@@ -68,6 +68,20 @@ int main(int argc, char **argv)
                 std::cout << "id name " ENGINE_NAME "\nid author Enigma\n";
                 //options
                 std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
+                for (int i = 0; i < sizeof(TUNING_TYPES) - 1; i++) //TUNING_TYPES is an array of characters
+                {
+                    std::cout << "option name P" << i << " value ";
+                    if (TUNING_TYPES[i] == 'F') //float
+                    {
+                        std::cout << (int)(*(float*)TUNING_PARAMS[i] * 1000);
+                    }
+                    else //int
+                    {
+                        std::cout << *(int*)TUNING_PARAMS[i];
+                    }
+                    std::cout << std::endl;
+                }
+
                 //uciok
                 std::cout << "uciok\n";
             }
