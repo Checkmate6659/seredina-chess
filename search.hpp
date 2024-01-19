@@ -24,7 +24,13 @@ using namespace chess;
 
 extern uint64_t nodes, max_nodes;
 #define MAX_DEPTH 96 //can't be as high as 127! otherwise we can get infinite-looped!
+#define NO_SCORE INT32_MIN
+#define IS_GAME_OVER(x) (std::abs(x) > 9999)
+
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
+
+#define RFP_DEPTH 7
+#define RFP_MARGIN 100
 
 //parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING

@@ -1,5 +1,6 @@
 #include "search.hpp"
 #include "chess.hpp"
+#include "eval.hpp"
 #include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
 #include "tt.hpp"
@@ -188,9 +189,26 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         }
     }
 
+    Value static_eval;
+    if (incheck)
+        static_eval = NO_SCORE;
+    else
+        static_eval = eval(board);
+    ss->eval[ss->ply] = static_eval;
+
     //Speculative prunings (NMP, RFP, ...)
     if (!pv_node && ss->ply != 0)
     {
+        //RFP: don't use it with mate scores (otherwise bad things happen)
+        if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= RFP_DEPTH)
+        {
+            //NOTE: improving => more confidence that position is good =>
+            //prune less on alpha, but more on beta (like in rfp)
+            Value rfp_val = static_eval - RFP_MARGIN * (depth/*  - improving */); //fixed margin for now, no improving yet
+            if (rfp_val >= beta)
+                return static_eval; //fail soft (NOTE: CPW impl wrong!)
+        }
+
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
         {
