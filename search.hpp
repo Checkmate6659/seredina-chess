@@ -12,7 +12,7 @@
 #include "eval.hpp"
 using namespace chess;
 
-// #define TUNING //enable tuning mode
+//#define TUNING //enable tuning mode
 //#define SEARCH_NODES //enable "go nodes"; maybe slows down engine a bit?
 
 #define PANIC_VALUE INT32_MAX
@@ -35,11 +35,11 @@ extern int see_multiplier, see_const; //SEE linear parameters
 extern int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
 extern float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
 #else
-const float lmr_f1 = 0.8, lmr_f2 = 0.4; //used in LMR lookup table initialization
-const int iir_depth = 3; //IIR minimum depth
-const int nmp_const = 2; //NMP constant term
-const int see_multiplier = 100, see_const = 100; //SEE linear parameters
-const int lmr_mindepth = 3, lmr_reduceafter = 4; //min depth and first reduced move
+const float lmr_f1 = 0.795, lmr_f2 = 0.35; //used in LMR lookup table initialization
+const int iir_depth = 1; //IIR minimum depth
+const int nmp_const = 4; //NMP constant term
+const int see_multiplier = 99, see_const = 117; //SEE linear parameters
+const int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
 const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 #endif
 

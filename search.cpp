@@ -5,11 +5,11 @@
 #include "tt.hpp"
 
 #ifdef TUNING
-float lmr_f1 = 0.8, lmr_f2 = 0.4; //used in LMR lookup table initialization
-int iir_depth = 3; //IIR minimum depth
-int nmp_const = 2; //NMP constant term
-int see_multiplier = 100, see_const = 100; //SEE linear params
-int lmr_mindepth = 3, lmr_reduceafter = 4;
+float lmr_f1 = 0.795, lmr_f2 = 0.35; //used in LMR lookup table initialization
+int iir_depth = 1; //IIR minimum depth
+int nmp_const = 4; //NMP constant term
+int see_multiplier = 99, see_const = 117; //SEE linear params
+int lmr_mindepth = 2, lmr_reduceafter = 2;
 float lmr_pv = 0.0, lmr_improving = 0.0;
 #endif
 
