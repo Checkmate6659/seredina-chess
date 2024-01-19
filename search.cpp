@@ -334,9 +334,6 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     return alpha;
 }
 
-//i want to make the thing tunable
-//before: 1668229
-//after:  ???????
 Move search_root(W_Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
