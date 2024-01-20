@@ -20,7 +20,7 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-int lmr_table[MAX_DEPTH][constants::MAX_MOVES];
+float lmr_table[MAX_DEPTH][constants::MAX_MOVES];
 void init_search_tables()
 {
     for (int depth = 0; depth < MAX_DEPTH; depth++)
@@ -188,6 +188,18 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         }
     }
 
+    Value static_eval;
+    if (incheck)
+        static_eval = NO_SCORE;
+    else
+        static_eval = eval(board);
+    ss->eval[ss->ply] = static_eval;
+    //improving? score has to exist; don't count first 2 plies as improving
+    bool improving = ss->ply >= 2
+        && static_eval != NO_SCORE
+        && ss->eval[ss->ply - 2] != NO_SCORE
+        && static_eval > ss->eval[ss->ply - 2];
+
     //Speculative prunings (NMP, RFP, ...)
     if (!pv_node && ss->ply != 0)
     {
@@ -261,11 +273,13 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                 //don't LMR good captures and promos
                 && move.score() < 0x7810 /*&& !incheck && !gives_check */)
             {
-                lmr = lmr_table[depth][i]; //use precalculated table
-                lmr -= pv_node * lmr_pv; //reduce less in PV-node (TODO)
-                lmr -= 0 * lmr_improving; //reduce less when improving (TODO)
+                //calculate things in float, so that more *fine* adjustment can be made
+                float lmrf = lmr_table[depth][i]; //use precalculated table
+                lmrf -= pv_node * lmr_pv; //reduce less in PV-node (TODO)
+                lmrf -= improving * lmr_improving; //reduce less when improving (TODO)
 
-                lmr = std::max(std::min(lmr, depth - 2), 0); //don't negative-reduce
+                //convert to int; don't negative-reduce!
+                lmr = std::max(std::min((int)std::floor(lmrf), depth - 2), 0);
             }
             cur_score = -search(board, depth - 1 - lmr, -alpha - 1, -alpha, ss);
 
