@@ -13,6 +13,7 @@ int nmp_const = 4; //NMP constant term
 int see_multiplier = 99, see_const = 117; //SEE linear params
 int lmr_mindepth = 2, lmr_reduceafter = 2;
 float lmr_pv = 0.0, lmr_improving = 0.0;
+int rfp_depth = 7, rfp_margin = 75, rfp_impr = 0;
 #endif
 
 uint64_t nodes = 0;
@@ -206,11 +207,11 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (!pv_node && ss->ply != 0)
     {
         //RFP: don't use it with mate scores (otherwise bad things happen)
-        if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= RFP_DEPTH)
+        if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= rfp_depth)
         {
             //NOTE: improving => more confidence that position is good =>
             //prune less on alpha, but more on beta (like in rfp)
-            Value rfp_val = static_eval - RFP_MARGIN * (depth/*  - improving */); //fixed margin for now, no improving yet
+            Value rfp_val = static_eval - rfp_margin * depth - rfp_impr * improving; //fixed margin for now, no improving yet
             if (rfp_val >= beta)
                 return static_eval; //fail soft (NOTE: CPW impl wrong!)
         }

@@ -30,9 +30,6 @@ extern uint64_t nodes, max_nodes;
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 #define NO_SCORE INT32_MIN
 
-#define RFP_DEPTH 7
-#define RFP_MARGIN 75
-
 //parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING
 extern float lmr_f1, lmr_f2; //used in LMR lookup table initialization
@@ -41,6 +38,7 @@ extern int nmp_const; //NMP constant term
 extern int see_multiplier, see_const; //SEE linear parameters
 extern int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
 extern float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
+extern int rfp_depth, rfp_margin, rfp_impr;
 #else
 const float lmr_f1 = 0.795, lmr_f2 = 0.35; //used in LMR lookup table initialization
 const int iir_depth = 1; //IIR minimum depth
@@ -48,6 +46,7 @@ const int nmp_const = 4; //NMP constant term
 const int see_multiplier = 99, see_const = 117; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
 const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
+const int rfp_depth = 7, rfp_margin = 75, rfp_impr = 0;
 #endif
 
 typedef struct {
