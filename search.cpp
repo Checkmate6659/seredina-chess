@@ -1,6 +1,7 @@
 #include "search.hpp"
 #include "chess.hpp"
 #include "eval.hpp"
+#include "eval.hpp"
 #include "order.hpp" //move scoring
 #include "posix.hpp" //kbhit equivalent on linux
 #include "tt.hpp"
@@ -189,17 +190,17 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         }
     }
 
-    Value static_eval;
-    if (incheck)
-        static_eval = NO_SCORE;
+    //static evaluation
+    //if in check: just set static_eval to some very low value
+    if (incheck) //to indicate that we don't have a static eval!!!
+        //IMPORTANT: negating prev ply doesn't work (last move could have hung a piece)
+        ss->eval[ss->ply] = NO_SCORE; //in check: set to sth TINY (no chance!)
     else
-        static_eval = eval(board);
-    ss->eval[ss->ply] = static_eval;
-    //improving? score has to exist; don't count first 2 plies as improving
-    bool improving = ss->ply >= 2
-        && static_eval != NO_SCORE
-        && ss->eval[ss->ply - 2] != NO_SCORE
-        && static_eval > ss->eval[ss->ply - 2];
+        ss->eval[ss->ply] = eval(board); //static eval
+
+    //static_eval variable; improving (with ply >= 2)
+    Value static_eval = ss->eval[ss->ply];
+    bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2] && ss->eval[ss->ply-2] != NO_SCORE;
 
     //Speculative prunings (NMP, RFP, ...)
     if (!pv_node && ss->ply != 0)
