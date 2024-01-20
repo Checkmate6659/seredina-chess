@@ -31,7 +31,7 @@ extern uint64_t nodes, max_nodes;
 #define NO_SCORE INT32_MIN
 
 #define RFP_DEPTH 7
-#define RFP_MARGIN 100
+#define RFP_MARGIN 75
 
 //parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING
