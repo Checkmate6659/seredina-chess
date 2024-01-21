@@ -7,13 +7,13 @@
 #include "tt.hpp"
 
 #ifdef TUNING
-float lmr_f1 = 0.795, lmr_f2 = 0.35; //used in LMR lookup table initialization
-int iir_depth = 1; //IIR minimum depth
+float lmr_f1 = 0.79, lmr_f2 = 0.233; //used in LMR lookup table initialization
+int iir_depth = 0; //IIR minimum depth
 int nmp_const = 4; //NMP constant term
-int see_multiplier = 99, see_const = 117; //SEE linear params
-int lmr_mindepth = 2, lmr_reduceafter = 2;
-float lmr_pv = 0.0, lmr_improving = 0.0;
-int rfp_depth = 7, rfp_margin = 75, rfp_impr = 0;
+int see_multiplier = 86, see_const = 98; //SEE linear parameters
+int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
+float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
+int rfp_depth = 7, rfp_margin = 70, rfp_impr = -33; //RFP parameters (rfp_impr should be positive!)
 #endif
 
 uint64_t nodes = 0;
@@ -211,7 +211,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         {
             //NOTE: improving => more confidence that position is good =>
             //prune less on alpha, but more on beta (like in rfp)
-            Value rfp_val = static_eval - rfp_margin * depth - rfp_impr * improving; //fixed margin for now, no improving yet
+            Value rfp_val = static_eval - (rfp_margin * depth - rfp_impr * improving); //fixed margin for now, no improving yet
             if (rfp_val >= beta)
                 return static_eval; //fail soft (NOTE: CPW impl wrong!)
         }
