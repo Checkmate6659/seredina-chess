@@ -281,9 +281,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //https://github.com/TerjeKir/weiss/blob/master/src/search.c#L430
         if (depth >= 6 && move == tt_move && excluded_move == Move::NO_MOVE &&
             phashe->flags != hashfALPHA && !IS_GAME_OVER(phashe->val)
-            && phashe->depth > depth - 3)
+            && phashe->depth > depth - 3 && ss->ply >= 1)
         {
-            Value se_beta = phashe->val - depth * 2; //just -1 is *very* aggressive!
+            Value se_beta = phashe->val - depth; //just -1 is *very* aggressive!
 
             //search with lower depth, excluding TT move
             Value se_score = search(board, depth / 2, se_beta - 1, se_beta, ss, move);
