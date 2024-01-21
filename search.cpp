@@ -131,7 +131,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
     return alpha;
 }
 
-Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss)
+Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss, Move excluded_move = Move::NO_MOVE)
 {
     if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
         if (panic || clock() > search_end_time ||
@@ -164,8 +164,11 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     HASHE* phashe = ProbeHash(board, ss->ply);
     if (phashe != nullptr /* && board.halfMoveClock() <= 60 */) //we have a hit
     {
-        //entry has enough depth
-        if (phashe->depth >= depth && ss->ply >= 1) { //Test this with ss->ply >= 1 instead
+        //this is executed even when we can't return from search immediately
+        tt_move = Move(phashe->best); //write best move out of there
+
+        //entry has enough depth, and we aren't returning the excluded move in a SE search
+        if (phashe->depth >= depth && ss->ply >= 1 && tt_move != excluded_move) {
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -178,9 +181,6 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             if (alpha >= beta)
                 return alpha; //hit with a bound
         } //phashe->depth >= depth
-
-        //this is executed even when we can't return from search immediately
-        tt_move = Move(phashe->best); //write best move out of there
     }
     else //TT miss
     {
@@ -204,7 +204,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2] && ss->eval[ss->ply-2] != NO_SCORE;
 
     //Speculative prunings (NMP, RFP, ...)
-    if (!pv_node && ss->ply != 0)
+    if (!pv_node && ss->ply != 0 && excluded_move == Move::NO_MOVE)
     {
         //RFP: don't use it with mate scores (otherwise bad things happen)
         if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= rfp_depth)
@@ -263,6 +263,24 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                 continue;
         }
 
+        //keep track of extension per move
+        int singular_extend = 0;
+
+        //Singular extensions
+        //https://github.com/TerjeKir/weiss/blob/master/src/search.c#L430
+        if (depth > 4 && move == tt_move && excluded_move == Move::NO_MOVE &&
+            phashe->flags != hashfALPHA && !IS_GAME_OVER(phashe->val)
+            && phashe->depth > depth - 3)
+        {
+            Value se_beta = phashe->val - 1/* - depth * 2 */;
+
+            //search with lower depth, excluding TT move
+            Value se_score = search(board, depth/2, se_beta - 1, se_beta, ss, move);
+
+            if (se_score < se_beta)
+                singular_extend = 1;
+        }
+
         board.makeMove(move);
         nodes++; //1 move made = 1 node
         ss->ply++;
@@ -273,9 +291,9 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         Value cur_score;
         //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
         if (i == 0)
-        //if (alpha < 256 - INT32_MAX || move == tt_move) //mate score warning! (???)
         {
-            cur_score = -search(board, depth - 1, -beta, -alpha, ss);
+            //NOTE: TT move is always here, so SE can only take effect here
+            cur_score = -search(board, depth - 1 + singular_extend, -beta, -alpha, ss);
         }
         else //not first move
         {
