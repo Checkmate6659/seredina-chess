@@ -12,7 +12,7 @@
 #include "eval.hpp"
 using namespace chess;
 
-// #define TUNING //enable tuning mode
+#define TUNING //enable tuning mode
 //#define SEARCH_NODES //enable "go nodes"; maybe slows down engine a bit?
 
 #define PANIC_VALUE INT32_MAX
@@ -39,6 +39,9 @@ extern int see_multiplier, see_const; //SEE linear parameters
 extern int lmr_mindepth, lmr_reduceafter; //min depth and first reduced move
 extern float lmr_pv, lmr_improving; //reducing less when PV and improving (TODO)
 extern int rfp_depth, rfp_margin, rfp_impr;
+extern int aspi_width; //aspiration window width
+extern int se_mindepth, se_ttdepth_margin, se_depth_mul; //SE params
+extern int se_dbl_margin, se_dbl_maxdepth; //SE double extension stuff
 #else
 const float lmr_f1 = 0.79, lmr_f2 = 0.233; //used in LMR lookup table initialization
 const int iir_depth = 0; //IIR minimum depth
@@ -47,7 +50,9 @@ const int see_multiplier = 86, see_const = 98; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
 const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 const int rfp_depth = 7, rfp_margin = 70, rfp_impr = -33; //RFP parameters (rfp_impr should be positive!)
-const int aspi_width = 20;
+const int aspi_width = 20; //aspiration window width
+const int se_mindepth = 6, se_ttdepth_margin = 3, se_depth_mul = 1; //SE params
+const int se_dbl_margin = 6, se_dbl_maxdepth = 8; //SE double extension stuff
 #endif
 
 typedef struct {

@@ -14,6 +14,9 @@ int see_multiplier = 86, see_const = 98; //SEE linear parameters
 int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
 float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 int rfp_depth = 7, rfp_margin = 70, rfp_impr = -33; //RFP parameters (rfp_impr should be positive!)
+int aspi_width = 20; //aspiration window width
+int se_mindepth = 6, se_ttdepth_margin = 3, se_depth_mul = 1; //SE params
+int se_dbl_margin = 6, se_dbl_maxdepth = 8; //SE double extension stuff
 #endif
 
 uint64_t nodes = 0;
@@ -279,17 +282,23 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
 
         //Singular extensions
         //https://github.com/TerjeKir/weiss/blob/master/src/search.c#L430
-        if (depth >= 6 && move == tt_move && excluded_move == Move::NO_MOVE &&
+        if (depth >= se_mindepth && move == tt_move && excluded_move == Move::NO_MOVE &&
             phashe->flags != hashfALPHA && !IS_GAME_OVER(phashe->val)
-            && phashe->depth > depth - 3 && ss->ply >= 1)
+            && phashe->depth > depth - se_ttdepth_margin && ss->ply >= 1)
         {
-            Value se_beta = phashe->val - depth; //just -1 is *very* aggressive!
+            Value se_beta = phashe->val - depth*se_depth_mul; //just -1 is *very* aggressive!
 
             //search with lower depth, excluding TT move
             Value se_score = search(board, depth / 2, se_beta - 1, se_beta, ss, move);
 
             if (se_score < se_beta)
+            {
                 singular_extend = 1;
+                //double extend: we have some margin, and limit depth from exploding
+                if (!pv_node && se_score < se_beta - se_dbl_margin && depth <= se_dbl_maxdepth)
+                    singular_extend = 2;
+            }
+            //TODO: multicut, negative extension
         }
 
         board.makeMove(move);
