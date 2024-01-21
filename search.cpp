@@ -167,8 +167,8 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //this is executed even when we can't return from search immediately
         tt_move = Move(phashe->best); //write best move out of there
 
-        //entry has enough depth, and we aren't returning the excluded move in a SE search
-        if (phashe->depth >= depth && ss->ply >= 1 && tt_move != excluded_move) {
+        //entry has enough depth, and we aren't in a SE search
+        if (phashe->depth >= depth && ss->ply >= 1 && excluded_move == Move::NO_MOVE) {
             if (phashe->flags == hashfEXACT) //exact hit! great
                 return phashe->val;
             else if ((phashe->flags == hashfALPHA) && //window resizing!
@@ -250,8 +250,8 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     //avoid the excluded move being first and messing things up with LMR etc...
     if (excluded_move != Move::NO_MOVE)
     {
-        int excluded = moves.find(excluded_move);
-        moves[excluded].setScore(INT16_MIN);
+        int excluded_idx = moves.find(excluded_move);
+        moves[excluded_idx].setScore(INT16_MIN);
     }
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
