@@ -397,7 +397,27 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
     while (++cur_depth <= depth && !panic)
     {
         //iterate over all legal moves, try find the best one
-        Value best_score = search(board, cur_depth, 1 - INT32_MAX, INT32_MAX - 1, &ss);
+        Value best_score;
+
+        if (cur_depth == 1) //can't aspiwindow on depth 1 (TODO: try using qs or static eval)
+        {
+            best_score = search(board, cur_depth, 1 - INT32_MAX, INT32_MAX - 1, &ss);
+        }
+        else
+        {
+            Value aspi_alpha = std::max(old_best, 1 + aspi_width - INT32_MAX) - aspi_width;
+            Value aspi_beta = std::min(old_best, INT32_MAX - 1 - aspi_width) + aspi_width;
+
+            //aspiwindow score
+            best_score = search(board, cur_depth,
+                aspi_alpha,
+                aspi_beta, &ss);
+
+            //search failed: re-search necessary
+            if (best_score <= aspi_alpha || best_score >= aspi_beta)
+                best_score = search(board, cur_depth, 1 - INT32_MAX, INT32_MAX - 1, &ss);
+        }
+
         Move cur_best_move = ss.best_root_move; //get best root move out!
 
         //record this in TT so that next ply will immediately go for current best move

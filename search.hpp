@@ -47,6 +47,7 @@ const int see_multiplier = 86, see_const = 98; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
 const float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
 const int rfp_depth = 7, rfp_margin = 70, rfp_impr = -33; //RFP parameters (rfp_impr should be positive!)
+const int aspi_width = 20;
 #endif
 
 typedef struct {
