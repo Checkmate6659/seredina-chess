@@ -247,10 +247,21 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     //score moves
     score_moves(board, moves, tt_move, killers[ss->ply]);
 
+    //avoid the excluded move being first and messing things up with LMR etc...
+    if (excluded_move != Move::NO_MOVE)
+    {
+        int excluded = moves.find(excluded_move);
+        moves[excluded].setScore(INT16_MIN);
+    }
+
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
+
+        //exclude the excluded move!!!
+        if (move == excluded_move)
+            continue;
 
         //Don't SEE-prune first move (leave possibility if all moves losing)
         //also, more chance of most/all legal moves losing material when in check
@@ -268,14 +279,14 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
 
         //Singular extensions
         //https://github.com/TerjeKir/weiss/blob/master/src/search.c#L430
-        if (depth > 4 && move == tt_move && excluded_move == Move::NO_MOVE &&
+        if (depth >= 6 && move == tt_move && excluded_move == Move::NO_MOVE &&
             phashe->flags != hashfALPHA && !IS_GAME_OVER(phashe->val)
             && phashe->depth > depth - 3)
         {
-            Value se_beta = phashe->val - 1/* - depth * 2 */;
+            Value se_beta = phashe->val - depth * 2; //just -1 is *very* aggressive!
 
             //search with lower depth, excluding TT move
-            Value se_score = search(board, depth/2, se_beta - 1, se_beta, ss, move);
+            Value se_score = search(board, depth / 2, se_beta - 1, se_beta, ss, move);
 
             if (se_score < se_beta)
                 singular_extend = 1;
