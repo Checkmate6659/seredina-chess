@@ -7,16 +7,16 @@
 #include "tt.hpp"
 
 #ifdef TUNING
-float lmr_f1 = 0.79, lmr_f2 = 0.233; //used in LMR lookup table initialization
-int iir_depth = 0; //IIR minimum depth
-int nmp_const = 4; //NMP constant term
-int see_multiplier = 86, see_const = 98; //SEE linear parameters
-int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
-float lmr_pv = 0.0, lmr_improving = 0.0; //reducing less when PV and improving (TODO)
-int rfp_depth = 7, rfp_margin = 70, rfp_impr = -33; //RFP parameters (rfp_impr should be positive!)
-int aspi_width = 20; //aspiration window width
-int se_mindepth = 6, se_ttdepth_margin = 3, se_depth_mul = 1; //SE params
-int se_dbl_margin = 6, se_dbl_maxdepth = 8; //SE double extension stuff
+float lmr_f1 = 0.766, lmr_f2 = 0.243; //used in LMR lookup table initialization
+int iir_depth = 1; //IIR minimum depth
+int nmp_const = 3; //NMP constant term
+int see_multiplier = 78, see_const = 77; //SEE linear parameters
+int lmr_mindepth = 2, lmr_reduceafter = 3; //min depth and first reduced move
+float lmr_pv = 0.458, lmr_improving = 0.03; //reducing less when PV and improving (TODO)
+int rfp_depth = 6, rfp_margin = 125, rfp_impr = -4; //RFP parameters (rfp_impr should be positive!)
+int aspi_width = 32; //aspiration window width
+int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 2; //SE params
+int se_dbl_margin = 12, se_dbl_maxdepth = 10; //SE double extension stuff
 #endif
 
 uint64_t nodes = 0;
@@ -199,7 +199,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (incheck) //to indicate that we don't have a static eval!!!
         //IMPORTANT: negating prev ply doesn't work (last move could have hung a piece)
         ss->eval[ss->ply] = NO_SCORE; //in check: set to sth TINY (no chance!)
-    else
+    else //TODO: try putting phashe->val or qs result here instead
         ss->eval[ss->ply] = eval(board); //static eval
 
     //static_eval variable; improving (with ply >= 2)
