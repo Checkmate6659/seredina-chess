@@ -75,8 +75,8 @@ float calc_nnue(NNUEAccumulator us, NNUEAccumulator them)
     //add up stuff for both accumulators, do activation function here too
     for (int i = 0; i < HL_SIZE; i++)
     {
-        output += crelu(us.h1[i]) * L2_WEIGHTS[i];
-        output += crelu(them.h1[i]) * L2_WEIGHTS[HL_SIZE + i];
+        output += screlu(us.h1[i]) * L2_WEIGHTS[i];
+        output += screlu(them.h1[i]) * L2_WEIGHTS[HL_SIZE + i];
     }
 
     return output * 400; //scaling number

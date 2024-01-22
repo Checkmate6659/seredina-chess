@@ -17,11 +17,12 @@ using namespace chess;
 typedef int32_t Value;
 typedef int32_t ValPair; //for S pairs (signed so that we can narrow things properly)
 
-//CReLU (between 0 and 1)
+//SCReLU (between 0 and 1)
 //TODO: change when quantizing
-inline float crelu(float input)
+inline float screlu(float input)
 {
-    return std::min(std::max(input, (float)0), (float)1);
+    float y = std::min(std::max(input, (float)0), (float)1);
+    return y * y;
 }
 
 void init_tables();
