@@ -72,7 +72,7 @@ void bench()
     for (int i = 0; i < sizeof(benchfens)/sizeof(std::string); i++)
     {
         board.setFen(benchfens[i]);
-        search_root(board, 1000, (i < 10) ? 11 : 6);
+        search_root(board, 1000, (i < 5) ? 10 : 6);
         total_nodes += nodes;
     }
     clk += clock(); //end measurement
