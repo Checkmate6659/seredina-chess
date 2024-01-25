@@ -8,17 +8,17 @@ raw = list(np.fromfile("f32.bin", dtype="float32"))
 print("#ifndef NN_VALUES_H\n#define NN_VALUES_H\n\n")
 
 print("const float L1_WEIGHTS[] = {")
-print(str(raw[:768*64])[1:-1]) #matrix is 768*64 (stored column-major)
+print(str(raw[:768*256])[1:-1]) #matrix is 768*256 (stored column-major)
 print("};\nconst float L1_BIASES[] = {")
-print(str(raw[768*64 : 768*64 + 64])[1:-1]) #64 biases
+print(str(raw[768*256 : 768*256 + 256])[1:-1]) #256 biases
 
 print("};\nconst float L2_WEIGHTS[] = {")
-print(str(raw[768*64 + 64 : 768*64 + 64 + 128])[1:-1]) #matrix is 128*1
+print(str(raw[768*256 + 256 : 768*256 + 256 + 512])[1:-1]) #matrix is 512*1
 print("};\nconst float L2_BIAS =")
-print(str(raw[768*64 + 64 + 128])[1:-1]) #single value
+print(str(raw[768*256 + 256 + 512])[1:-1]) #single value
 
 print(";\n#endif")
 
 #DEBUG
-#print(len(raw), 768*64 + 64 + 128 + 1)
+#print(len(raw), 768*256 + 256 + 512 + 1)
 
