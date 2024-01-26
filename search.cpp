@@ -26,18 +26,25 @@ bool panic = false;
 
 Move killers[MAX_DEPTH][2];
 
-float lmr_table[MAX_DEPTH][constants::MAX_MOVES];
+float lmr_table[MAX_DEPTH][constants::MAX_MOVES]; //LMR table
+int lmp_count[2][MAX_DEPTH]; //LMP table
 void init_search_tables()
 {
     for (int depth = 0; depth < MAX_DEPTH; depth++)
     {
         for (int i = 0; i < constants::MAX_MOVES; i++)
         {
+            //init LMR table
             if (depth == 0 || i == 0) //for safety! (also to avoid doing log(0))
                 lmr_table[depth][i] = 0;
             else //log*log formula (TODO: tune constants!)
                 lmr_table[depth][i] = std::round(lmr_f1 + log(depth) * log(i) * lmr_f2);
         }
+
+        //init LMP table
+        //TODO: improving! (now we always use the very not aggressive 10*depth)
+        lmp_count[0][depth] = 10 + 10 * depth;/* 3 + 1.0 * depth * depth; */ //not improving
+        // lmp_count[1][depth] = 5 + 3.0 * depth * depth; //improving
     }
 }
 
@@ -258,12 +265,19 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     }
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
+    int lmp_seen = 0; //number of moves for lmp
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
 
         //exclude the excluded move!!!
         if (move == excluded_move)
+            continue;
+
+        //do late move pruning
+        if (alpha >= -9999 && !board.isCapture(move) && move.score() < 0
+            && depth <= LMP_DEPTH/*  && !incheck */
+            && lmp_seen >= lmp_count[0][depth]/*  && ss->ply >= 1 */) //TODO: improving!
             continue;
 
         //Don't SEE-prune first move (leave possibility if all moves losing)
@@ -301,12 +315,17 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             //TODO: multicut, negative extension
         }
 
+        //is current move capture? (TODO: promotions too!)
+        bool quiet = !board.isCapture(move);
+
         board.makeMove(move);
         nodes++; //1 move made = 1 node
         ss->ply++;
 
         //does current move give check?
         bool gives_check = board.inCheck();
+
+        lmp_seen += quiet /* && !gives_check */; //increase number of moves seen for lmp
 
         Value cur_score;
         //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
