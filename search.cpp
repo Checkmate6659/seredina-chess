@@ -373,7 +373,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                     killers[ss->ply][0] = move;
                 }
 
-                //update history
+                //update history (doing on beta and not alpha doesn't change bench?!)
                 update_hist(board, moves, move, depth);
 
                 //store in hash table (beta = lower bound flag)
