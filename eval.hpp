@@ -14,14 +14,18 @@ using namespace chess;
 //extract EG value from a S pair (lower 16 bits)
 #define EG(s_pair__) ((int16_t)(s_pair__))
 
+#define QA 255
+#define QB 64
+#define QAB (QA * QB)
+
 typedef int32_t Value;
 typedef int32_t ValPair; //for S pairs (signed so that we can narrow things properly)
 
 //SCReLU (between 0 and 1)
 //TODO: change when quantizing
-inline float screlu(float input)
+inline uint16_t screlu(int16_t input)
 {
-    float y = std::min(std::max(input, (float)0), (float)1);
+    uint8_t y = std::min(std::max(input, (int16_t)0), (int16_t)QA);
     return y * y;
 }
 

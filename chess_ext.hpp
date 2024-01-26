@@ -9,7 +9,7 @@ using namespace chess;
 
 //NNUE accumulator
 typedef struct {
-    float h1[HL_SIZE];
+    int16_t h1[HL_SIZE];
 } NNUEAccumulator;
 
 
