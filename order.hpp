@@ -17,7 +17,7 @@ int16_t capthist[12][64][5]; //piece-to-captured
 int16_t hist[12][64]; //piece-to
 
 //pawn, knight, bishop, rook, queen
-const int16_t mvv_bonus[] = { 0, 2048, 2048, 4096, 8192 };
+const int16_t mvv_bonus[] = { 0, 2048, 2048, 4096, 8192, 0, 0 }; //last 2 are for ep
 
 inline void update_hist(W_Board board, Movelist &moves, Move best, int8_t depth)
 {

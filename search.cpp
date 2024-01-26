@@ -363,9 +363,6 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             if (ss->ply == 0) //get best root move (IMPORTANT!)
                 ss->best_root_move = move;
 
-            //boost history
-            update_hist(board, moves, move, depth);
-
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
                 //killer move update: quiet move; avoid duplicate killers
@@ -376,10 +373,12 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                     killers[ss->ply][0] = move;
                 }
 
+                //update history
+                update_hist(board, moves, move, depth);
+
                 //store in hash table (beta = lower bound flag)
-                //why does fail soft give really bad results?
                 RecordHash(board, depth, beta, hashfBETA, move, ss->ply);
-                return cur_score; //fail soft here: no effect!
+                return cur_score;
             }
         }
     }
