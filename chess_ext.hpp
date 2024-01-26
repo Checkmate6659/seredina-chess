@@ -5,7 +5,7 @@
 #include "nn_values.hpp" //needed for incremental computation of NNUE accumulator
 using namespace chess;
 
-#define HL_SIZE 256 //NN hidden layer size
+#define HL_SIZE 1024 //NN hidden layer size
 
 //NNUE accumulator
 typedef struct {
