@@ -83,7 +83,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
     //only generate captures
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board);
 
-    /* HASHE* phashe = ProbeHash(board, MAX_DEPTH); //qs TT (TODO: test!!!)
+    HASHE* phashe = ProbeHash(board, MAX_DEPTH); //qs TT (TODO: test!!!)
     if (phashe != nullptr) //we have a hit (NO depth check here!)
     {
         if (phashe->flags == hashfEXACT) //exact hit! great
@@ -97,7 +97,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
 
         if (alpha >= beta) //tt cutoff
             return alpha;
-    } */
+    }
     //TODO: use TT move here as well?
 
     Move best_move = Move::NO_MOVE; //best move (for TT)
@@ -121,15 +121,15 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
             best_move = move;
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
-                // RecordHash(board, 0, alpha, hashfBETA, move, MAX_DEPTH);
+                RecordHash(board, 0, alpha, hashfBETA, move, MAX_DEPTH);
                 return cur_score; //no effect of fail soft here
             }
         }
     }
 
     //Storing tt_move instead of best_move when failing low makes like 0 change
-    /* uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
-    RecordHash(board, 0, alpha, hashf, best_move, MAX_DEPTH); */
+    uint8_t hashf = (best_move == Move::NO_MOVE) ? hashfALPHA : hashfEXACT;
+    RecordHash(board, 0, alpha, hashf, best_move, MAX_DEPTH);
 
     return alpha;
 }
