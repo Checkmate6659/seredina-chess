@@ -207,10 +207,10 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     bool improving = !incheck && ss->ply >= 2 && static_eval > ss->eval[ss->ply-2] && ss->eval[ss->ply-2] != NO_SCORE;
 
     //Speculative prunings (NMP, RFP, ...)
-    if (!pv_node && ss->ply != 0 && excluded_move == Move::NO_MOVE)
+    if (!pv_node && static_eval != NO_SCORE && !incheck && ss->ply != 0 && excluded_move == Move::NO_MOVE)
     {
         //RFP: don't use it with mate scores (otherwise bad things happen)
-        if(!incheck && !IS_GAME_OVER(beta) && static_eval != NO_SCORE && depth <= rfp_depth)
+        if(!IS_GAME_OVER(beta) && depth <= rfp_depth)
         {
             //NOTE: improving => more confidence that position is good =>
             //prune less on alpha, but more on beta (like in rfp)
@@ -220,10 +220,12 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         }
 
         //NMP: enough depth, not in check, no zugzwang condition
-        if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
+        if (board.hasNonPawnMaterial(board.sideToMove()))
         {
-            int reduced_depth = depth - nmp_const; //constant R = 2
+            int reduced_depth = depth - nmp_const - depth/3 
+                - std::min(std::max((static_eval - beta)/256, 0), 3);
             reduced_depth = std::max(reduced_depth, 1); //don't use depth < 1
+            // reduced_depth = std::min(reduced_depth, depth); //don't extend!
 
             board.makeNullMove(); //make null move
             ss->ply++; //inc ply, so that the indices into stuff is correct
