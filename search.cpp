@@ -7,16 +7,16 @@
 #include "tt.hpp"
 
 #ifdef TUNING
-float lmr_f1 = 0.766, lmr_f2 = 0.243; //used in LMR lookup table initialization
+float lmr_f1 = 0.769, lmr_f2 = 0.288; //used in LMR lookup table initialization
 int iir_depth = 1; //IIR minimum depth
 int nmp_const = 3; //NMP constant term
-int see_multiplier = 78, see_const = 77; //SEE linear parameters
-int lmr_mindepth = 2, lmr_reduceafter = 3; //min depth and first reduced move
-float lmr_pv = 0.458, lmr_improving = 0.03; //reducing less when PV and improving (TODO)
-int rfp_depth = 6, rfp_margin = 125, rfp_impr = -4; //RFP parameters (rfp_impr should be positive!)
-int aspi_width = 32; //aspiration window width
-int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 2; //SE params
-int se_dbl_margin = 12, se_dbl_maxdepth = 10; //SE double extension stuff
+int see_multiplier = 87, see_const = 77; //SEE linear parameters
+int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
+float lmr_pv = 0.413, lmr_improving = 0.13; //reducing less when PV and improving (TODO)
+int rfp_depth = 6, rfp_margin = 142, rfp_impr = 40; //RFP parameters (rfp_impr should be positive!)
+int aspi_width = 48; //aspiration window width
+int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
+int se_dbl_margin = 19, se_dbl_maxdepth = 11; //SE double extension stuff
 #endif
 
 uint64_t nodes = 0;
@@ -298,7 +298,10 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                 if (!pv_node && se_score < se_beta - se_dbl_margin && depth <= se_dbl_maxdepth)
                     singular_extend = 2;
             }
-            //TODO: multicut, negative extension
+            // else if (se_beta >= beta) //Multi-Cut (TODO: test!)
+                // return se_beta;
+            else if (phashe->val >= beta) //negative extend
+                singular_extend = -1;
         }
 
         board.makeMove(move);
