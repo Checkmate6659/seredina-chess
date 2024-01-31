@@ -30,6 +30,9 @@ extern uint64_t nodes, max_nodes;
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 #define NO_SCORE INT32_MIN
 
+//TODO: make tunable (as well as LMP params)
+#define LMP_DEPTH 8
+
 //parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING
 extern float lmr_f1, lmr_f2; //used in LMR lookup table initialization
