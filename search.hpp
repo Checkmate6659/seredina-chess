@@ -45,17 +45,19 @@ extern int rfp_depth, rfp_margin, rfp_impr;
 extern int aspi_width; //aspiration window width
 extern int se_mindepth, se_ttdepth_margin, se_depth_mul; //SE params
 extern int se_dbl_margin, se_dbl_maxdepth; //SE double extension stuff
+extern float lmp00, lmp10, lmp01, lmp11;
 #else
-const float lmr_f1 = 0.769, lmr_f2 = 0.288; //used in LMR lookup table initialization
-const int iir_depth = 1; //IIR minimum depth
-const int nmp_const = 3; //NMP constant term
-const int see_multiplier = 87, see_const = 77; //SEE linear parameters
+const float lmr_f1 = 0.741, lmr_f2 = 0.276; //used in LMR lookup table initialization
+const int iir_depth = 0; //IIR minimum depth
+const int nmp_const = 4; //NMP constant term
+const int see_multiplier = 80, see_const = 72; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
-const float lmr_pv = 0.413, lmr_improving = 0.13; //reducing less when PV and improving (TODO)
-const int rfp_depth = 6, rfp_margin = 142, rfp_impr = 40; //RFP parameters (rfp_impr should be positive!)
-const int aspi_width = 48; //aspiration window width
+const float lmr_pv = 0.56, lmr_improving = 0.06; //reducing less when PV and improving (TODO)
+const int rfp_depth = 6, rfp_margin = 90, rfp_impr = 81; //RFP parameters (rfp_impr should be positive!)
+const int aspi_width = 50; //aspiration window width
 const int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
-const int se_dbl_margin = 19, se_dbl_maxdepth = 11; //SE double extension stuff
+const int se_dbl_margin = 22, se_dbl_maxdepth = 12; //SE double extension stuff
+const float lmp00 = 3.113, lmp10 = 4.837, lmp01 = 1.383, lmp11 = 3.218;
 #endif
 
 typedef struct {

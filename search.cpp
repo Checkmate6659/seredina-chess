@@ -7,16 +7,17 @@
 #include "tt.hpp"
 
 #ifdef TUNING
-float lmr_f1 = 0.769, lmr_f2 = 0.288; //used in LMR lookup table initialization
-int iir_depth = 1; //IIR minimum depth
-int nmp_const = 3; //NMP constant term
-int see_multiplier = 87, see_const = 77; //SEE linear parameters
+float lmr_f1 = 0.741, lmr_f2 = 0.276; //used in LMR lookup table initialization
+int iir_depth = 0; //IIR minimum depth
+int nmp_const = 4; //NMP constant term
+int see_multiplier = 80, see_const = 72; //SEE linear parameters
 int lmr_mindepth = 2, lmr_reduceafter = 2; //min depth and first reduced move
-float lmr_pv = 0.413, lmr_improving = 0.13; //reducing less when PV and improving (TODO)
-int rfp_depth = 6, rfp_margin = 142, rfp_impr = 40; //RFP parameters (rfp_impr should be positive!)
-int aspi_width = 48; //aspiration window width
+float lmr_pv = 0.56, lmr_improving = 0.06; //reducing less when PV and improving (TODO)
+int rfp_depth = 6, rfp_margin = 90, rfp_impr = 81; //RFP parameters (rfp_impr should be positive!)
+int aspi_width = 50; //aspiration window width
 int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
-int se_dbl_margin = 19, se_dbl_maxdepth = 11; //SE double extension stuff
+int se_dbl_margin = 22, se_dbl_maxdepth = 12; //SE double extension stuff
+float lmp00 = 3.113, lmp10 = 4.837, lmp01 = 1.383, lmp11 = 3.218;
 #endif
 
 uint64_t nodes = 0;
@@ -43,8 +44,8 @@ void init_search_tables()
 
         //init LMP table
         //TODO: improving! (now we always use the very not aggressive 10*depth)
-        lmp_count[0][depth] = 10 + 10 * depth;/* 3 + 1.0 * depth * depth; */ //not improving
-        // lmp_count[1][depth] = 5 + 3.0 * depth * depth; //improving
+        lmp_count[0][depth] = lmp00 + lmp01 * depth * depth; //not improving
+        lmp_count[1][depth] = lmp10 + lmp11 * depth * depth; //improving
     }
 }
 
@@ -276,8 +277,8 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
 
         //do late move pruning
         if (alpha >= -9999 && !board.isCapture(move) && move.score() < 0
-            && depth <= LMP_DEPTH/*  && !incheck */
-            && lmp_seen >= lmp_count[0][depth]/*  && ss->ply >= 1 */) //TODO: improving!
+            && depth <= LMP_DEPTH && !incheck
+            && lmp_seen >= lmp_count[0][depth] && ss->ply >= 1) //TODO: improving!
             continue;
 
         //Don't SEE-prune first move (leave possibility if all moves losing)

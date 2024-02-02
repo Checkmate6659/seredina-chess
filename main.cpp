@@ -29,9 +29,10 @@ const void* TUNING_PARAMS[] = {
     &aspi_width,
     &se_mindepth, &se_ttdepth_margin, &se_depth_mul,
     &se_dbl_margin, &se_dbl_maxdepth,
+    &lmp00, &lmp10, &lmp01, &lmp11
 };
 //F = float (all *1000); I = int
-const char TUNING_TYPES[] = "FFIIIIIIFFIIIIIIIII";
+const char TUNING_TYPES[] = "FFIIIIIIFFIIIIIIIIIFFFF";
 #endif
 
 int main(int argc, char **argv)
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
                 {
                     *(int*)TUNING_PARAMS[index] = value;
                 }
-                init_search_tables(); //reinitialize LMR
+                init_search_tables(); //reinitialize LMR and LMP
             }
 #endif
             break;
