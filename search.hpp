@@ -30,9 +30,6 @@ extern uint64_t nodes, max_nodes;
 #define QS_SEEPRUNE_THRESH (-1) //any strictly SEE-losing move is pruned (could also be 0)
 #define NO_SCORE INT32_MIN
 
-//TODO: make tunable (as well as LMP params)
-#define LMP_DEPTH 8
-
 //parameters: extern (and not initialized) when tuning, const when not tuning
 #ifdef TUNING
 extern float lmr_f1, lmr_f2; //used in LMR lookup table initialization
@@ -46,6 +43,7 @@ extern int aspi_width; //aspiration window width
 extern int se_mindepth, se_ttdepth_margin, se_depth_mul; //SE params
 extern int se_dbl_margin, se_dbl_maxdepth; //SE double extension stuff
 extern float lmp00, lmp10, lmp01, lmp11;
+extern int lmp_depth;
 #else
 const float lmr_f1 = 0.741, lmr_f2 = 0.276; //used in LMR lookup table initialization
 const int iir_depth = 0; //IIR minimum depth
@@ -58,6 +56,7 @@ const int aspi_width = 50; //aspiration window width
 const int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
 const int se_dbl_margin = 22, se_dbl_maxdepth = 12; //SE double extension stuff
 const float lmp00 = 3.113, lmp10 = 4.837, lmp01 = 1.383, lmp11 = 3.218;
+const int lmp_depth = 8;
 #endif
 
 typedef struct {

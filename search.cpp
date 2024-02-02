@@ -18,6 +18,7 @@ int aspi_width = 50; //aspiration window width
 int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
 int se_dbl_margin = 22, se_dbl_maxdepth = 12; //SE double extension stuff
 float lmp00 = 3.113, lmp10 = 4.837, lmp01 = 1.383, lmp11 = 3.218;
+int lmp_depth = 8;
 #endif
 
 uint64_t nodes = 0;
@@ -277,7 +278,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
 
         //do late move pruning
         if (alpha >= -9999 && !board.isCapture(move) && move.score() < 0
-            && depth <= LMP_DEPTH && !incheck
+            && depth <= lmp_depth && !incheck
             && lmp_seen >= lmp_count[0][depth] && ss->ply >= 1) //TODO: improving!
             continue;
 
