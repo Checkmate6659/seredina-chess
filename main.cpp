@@ -48,6 +48,10 @@ int main(int argc, char **argv)
 
     if (argc > 1) //bench
     {
+        //clear tables, so that all values are initialized
+        clear_hash();
+        clear_small_tables();
+
         bench();
         return 0;
     }
