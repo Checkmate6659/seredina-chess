@@ -3,6 +3,7 @@
 
 #include "chess.hpp"
 #include "nn_values.hpp" //needed for incremental computation of NNUE accumulator
+#include <vector>
 using namespace chess;
 
 #define HL_SIZE 256 //NN hidden layer size
@@ -20,13 +21,31 @@ class W_Board : public Board {
     W_Board(std::string_view fen) : Board(fen) {}
 
     virtual void setFen(std::string_view fen) {
+        //set NNUE accumulator
         for (int j = 0; j < HL_SIZE; j++)
             white_acc.h1[j] = black_acc.h1[j] = L1_BIASES[j];
+
+        //clear move history
+        move_history.clear();
+
+        //set fen
         Board::setFen(fen);
+    }
+
+    //these are used to update the move history vector
+    virtual void makeMove(const Move &move) {
+        move_history.push_back(std::make_pair(Board::at<Piece>(move.from()), move.move()));
+        Board::makeMove(move);
+    }
+
+    virtual void unmakeMove(const Move &move) {
+        move_history.pop_back();
+        Board::unmakeMove(move);
     }
 
     //declare members here
     NNUEAccumulator white_acc, black_acc; //NNUE accumulator (incrementally updated)
+    std::vector<std::pair<Piece, uint16_t>> move_history; //store last moves and pieces
 
     protected:
     //NOTE: without quantization we could have roundoff error issues!

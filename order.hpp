@@ -4,13 +4,18 @@
 #include "bb_util.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
 using namespace chess;
 
-#define MAX_HIST 0x7000
-#define MIN_HIST (-0x8000)
+#define MAX_HIST 0x3800
+#define MIN_HIST (-0x4000)
+#define MAX_CONTHIST 0x3800
+#define MIN_CONTHIST (-0x4000)
 
 //history table (piece; to)
 int16_t hist[12][64];
+//conthist table (an enemy move first (uncolored piece), and our own move later)
+int16_t conthist[6][64][12][64];
 
 inline void boost_hist(Piece piece, Square to, int8_t depth)
 {
@@ -18,8 +23,6 @@ inline void boost_hist(Piece piece, Square to, int8_t depth)
     int new_hist = hist[(int)piece][to.index()] + boost; //score not constrained yet!
     //constrain history score
     hist[(int)piece][to.index()] = std::min(MAX_HIST, new_hist); //score can only go up here
-    //IF INTRODUCING PENALTIES IN THIS FUNCTION, USE NEXT LINE!
-    //hist[(int)piece][to.index()] = std::min(0x7800, std::max(-0x8000, new_hist));
 }
 
 inline void penal_hist(Piece piece, Square to, int8_t depth)
@@ -28,8 +31,34 @@ inline void penal_hist(Piece piece, Square to, int8_t depth)
     int new_hist = hist[(int)piece][to.index()] - penalty; //score not constrained yet!
     //constrain history score
     hist[(int)piece][to.index()] = std::max(MIN_HIST, new_hist); //score can only go down here
-    //IF INTRODUCING BOOSTS IN THIS FUNCTION, USE NEXT LINE!
-    //hist[(int)piece][to.index()] = std::min(0x7800, std::max(-0x8000, new_hist));
+}
+
+inline void boost_conthist(W_Board &board, const Move &move, int8_t depth)
+{
+    if (board.move_history.empty()) return; //don't segfault!
+
+    int boost = depth * depth;
+    std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
+    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] + boost; //score not constrained yet!
+    //constrain history score
+    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] =
+        std::min(MAX_CONTHIST, new_conthist); //score can only go up here
+}
+
+inline void penal_conthist(W_Board &board, const Move &move, int8_t depth)
+{
+    if (board.move_history.empty()) return; //don't segfault!
+
+    int penalty = depth * depth;
+    std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
+    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] - penalty; //score not constrained yet!
+    //constrain history score
+    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] =
+        std::max(MIN_CONTHIST, new_conthist); //score can only go up here
 }
 
 //Give a score to all the moves (don't order them immediately!)
@@ -72,9 +101,23 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
         }
         else
         {
-            moves[i].setScore(hist //piece-to hist score (we have to cap it tho)
+            int16_t hist_val = hist //piece-to hist score (we have to cap it tho)
                 [(int)board.at<Piece>(moves[i].from())]
-                [moves[i].to().index()]);
+                [moves[i].to().index()];
+
+            int16_t conthist_val = 0;
+            if (board.move_history.size() >= 1) //don't segfault!
+            {
+                //conthist: index by current move as well as last move
+                std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
+                // printf("%d %d %d %d\n", (int)last_move.first.type(), (new Move(last_move.second))->to().index(), (int)board.at<Piece>(move.from()), move.to().index());
+
+                conthist_val = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+                    [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
+            }
+
+            moves[i].setScore(hist_val + conthist_val);
+
         }
     }
 }

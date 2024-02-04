@@ -58,7 +58,12 @@ void clear_small_tables()
     //reset histories to 0 (note: starting value can be adjusted to minimize clampings)
     for (int i = 0; i < 12; i++)
         for (int j = 0; j < 64; j++)
+        {
             hist[i][j] = 0;
+            for (int k = 0; k < 6; k++)
+                for (int l = 0; l < 64; l++)
+                conthist[k][l][i][j] = 0;
+        }
 }
 
 //clear hash table
@@ -386,6 +391,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             {
                 //boost history
                 boost_hist(board.at<Piece>(move.from()), move.to(), depth);
+                boost_conthist(board, move, depth);
             }
 
             if (cur_score >= beta) //beta cutoff (fail soft)
@@ -410,6 +416,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             {
                 //penalize history
                 penal_hist(board.at<Piece>(move.from()), move.to(), depth);
+                penal_conthist(board, move, depth);
             }
         }
     }
