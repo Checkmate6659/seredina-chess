@@ -267,7 +267,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (excluded_move != Move::NO_MOVE)
     {
         int excluded_idx = moves.find(excluded_move);
-        moves.scores[excluded_idx] = INT16_MIN;
+        moves.scores[excluded_idx] = INT32_MIN;
     }
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)

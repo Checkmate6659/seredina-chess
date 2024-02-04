@@ -6,15 +6,15 @@
 #include <cstdint>
 using namespace chess;
 
-#define MAX_HIST 0x3800
-#define MIN_HIST (-0x4000)
-#define MAX_CONTHIST 0x3800
-#define MIN_CONTHIST (-0x4000)
+#define MAX_HIST 0x3FFFFC00
+#define MIN_HIST (-0x40000000)
+#define MAX_CONTHIST 0x3FFFFC00
+#define MIN_CONTHIST (-0x40000000)
 
 //history table (piece; to)
-int16_t hist[12][64];
+int32_t hist[12][64];
 //conthist table (an enemy move first (uncolored piece), and our own move later)
-int16_t conthist[6][64][12][64];
+int32_t conthist[6][64][12][64];
 uint16_t cm_heuristic[12][64]; //countermove table (piece; to)
 
 inline void boost_hist(Piece piece, Square to, int8_t depth)
@@ -70,16 +70,14 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
         const auto move = moves[i];
 
         if (moves[i] == tt_move) //TT MOVE!!!
-            moves.scores[i] = 0x7FFF; //highest score
-        //score promotions! (no library function for that tho); only up queen promos a lot
-        else if (
-            moves[i].promotionType() == PieceType::QUEEN //promotes to a queen (might be enough by itself?)
-            && board.at<PieceType>(moves[i].from()) == PieceType::PAWN //moved a pawn
-            && moves[i].to().rank() % 7 == 0) //to a back rank
+            moves.scores[i] = 0x7FFFFFFF; //highest score
+        //score promotions! only up queen promos a lot (the rest is most likely worse)
+        else if (moves[i].typeOf() == Move::PROMOTION &&
+            moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
         {
             //like MVV-LVA really
             PieceType victim = board.at<PieceType>(moves[i].to());
-            moves.scores[i] = 0x7FF8 + (int)victim; //really high score!
+            moves.scores[i] = 0x7FFFFFF8 + (int)victim; //really high score!
         }
         else if (board.isCapture(moves[i]))
         {
@@ -88,30 +86,30 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             PieceType aggressor = board.at<PieceType>(moves[i].from());
 
             //TODO: try searching these later!
-            int16_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001; //0;
+            int32_t bonus = SEE(board, moves[i], -1) ? 0x7FFFF810 : 0x7FFFF001; //0;
             moves.scores[i] = bonus + (int)victim * 16 - (int)aggressor;
         }
         //killers
         else if (move == cur_killers[0])
         {
-            moves.scores[i] = 0x7803;
+            moves.scores[i] = 0x7FFFF803;
         }
         else if (move == cur_killers[1])
         {
-            moves.scores[i] = 0x7802;
+            moves.scores[i] = 0x7FFFF802;
         }
         //countermove heuristic
         else if (board.move_history.size() >= 1 &&
             move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
             [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
-            moves.scores[i] = 0x7801;
+            moves.scores[i] = 0x7FFFF801;
         else
         {
-            int16_t hist_val = hist //piece-to hist score (we have to cap it tho)
+            int32_t hist_val = hist //piece-to hist score (we have to cap it tho)
                 [(int)board.at<Piece>(moves[i].from())]
                 [moves[i].to().index()];
 
-            int16_t conthist_val = 0;
+            int32_t conthist_val = 0;
             if (board.move_history.size() >= 1) //don't segfault!
             {
                 //conthist: index by current move as well as last move
