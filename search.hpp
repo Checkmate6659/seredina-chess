@@ -45,18 +45,18 @@ extern int se_dbl_margin, se_dbl_maxdepth; //SE double extension stuff
 extern float lmp00, lmp10, lmp01, lmp11;
 extern int lmp_depth;
 #else
-const float lmr_f1 = 0.718, lmr_f2 = 0.23; //used in LMR lookup table initialization
+const float lmr_f1 = 0.704, lmr_f2 = 0.256; //used in LMR lookup table initialization
 const int iir_depth = 1; //IIR minimum depth
-const int nmp_const = 4; //NMP constant term
-const int see_multiplier = 84, see_const = 65; //SEE linear parameters
-const int lmr_mindepth = 2, lmr_reduceafter = 4; //min depth and first reduced move
-const float lmr_pv = 0.717, lmr_improving = 0.29; //reducing less when PV and improving (TODO)
-const int rfp_depth = 7, rfp_margin = 109, rfp_impr = 61; //RFP parameters (rfp_impr should be positive!)
+const int nmp_const = 3; //NMP constant term
+const int see_multiplier = 78, see_const = 65; //SEE linear parameters
+const int lmr_mindepth = 2, lmr_reduceafter = 3; //min depth and first reduced move
+const float lmr_pv = 0.676, lmr_improving = 0.111; //reducing less when PV and improving (TODO)
+const int rfp_depth = 7, rfp_margin = 107, rfp_impr = 71; //RFP parameters (rfp_impr should be positive!)
 const int aspi_width = 58; //aspiration window width
-const int se_mindepth = 4, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
+const int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
 const int se_dbl_margin = 25, se_dbl_maxdepth = 11; //SE double extension stuff
-const float lmp00 = 3.098, lmp10 = 5.032, lmp01 = 1.447, lmp11 = 3.209;
-const int lmp_depth = 8;
+const float lmp00 = 3.275, lmp10 = 5.053, lmp01 = 1.503, lmp11 = 3.133;
+const int lmp_depth = 9;
 #endif
 
 typedef struct {
