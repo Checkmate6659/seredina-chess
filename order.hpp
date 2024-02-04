@@ -6,15 +6,15 @@
 #include <cstdint>
 using namespace chess;
 
-#define MAX_HIST 0x3800
-#define MIN_HIST (-0x4000)
-#define MAX_CONTHIST 0x3800
-#define MIN_CONTHIST (-0x4000)
+#define MAX_HIST 0x2555
+#define MIN_HIST (-0x2aaa)
+#define MAX_CONTHIST 0x2555
+#define MIN_CONTHIST (-0x2aaa)
 
 //history table (piece; to)
 int16_t hist[12][64];
-//conthist table (an enemy move first (uncolored piece), and our own move later)
-int16_t conthist[6][64][12][64];
+//conthist table (a move 1 or 2 moves ago first, and our own move later)
+int16_t conthist[12][64][12][64];
 uint16_t cm_heuristic[12][64]; //countermove table (piece; to)
 
 inline void boost_hist(Piece piece, Square to, int8_t depth)
@@ -35,28 +35,54 @@ inline void penal_hist(Piece piece, Square to, int8_t depth)
 
 inline void boost_conthist(W_Board &board, const Move &move, int8_t depth)
 {
+    int boost = depth * depth;
+
+    //last move
     if (board.move_history.empty()) return; //don't segfault!
 
-    int boost = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int new_conthist = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] + boost; //score not constrained yet!
     //constrain history score
-    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] =
+        std::min(MAX_CONTHIST, new_conthist); //score can only go up here
+
+    //2 moves ago
+    if (board.move_history.size() < 2) return; //don't segfault!
+
+    last_move = board.move_history[board.move_history.size() - 2];
+    new_conthist = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] + boost; //score not constrained yet!
+    //constrain history score
+    conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
         std::min(MAX_CONTHIST, new_conthist); //score can only go up here
 }
 
 inline void penal_conthist(W_Board &board, const Move &move, int8_t depth)
 {
+    int penalty = depth * depth;
+
+    //last move
     if (board.move_history.empty()) return; //don't segfault!
 
-    int penalty = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int new_conthist = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] - penalty; //score not constrained yet!
     //constrain history score
-    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] =
+        std::max(MIN_CONTHIST, new_conthist); //score can only go up here
+
+    //2 moves ago
+    if (board.move_history.size() < 2) return; //don't segfault!
+
+    last_move = board.move_history[board.move_history.size() - 2];
+    new_conthist = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
+        [(int)board.at<Piece>(move.from())][move.to().index()] - penalty; //score not constrained yet!
+    //constrain history score
+    conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
         std::max(MIN_CONTHIST, new_conthist); //score can only go up here
 }
@@ -111,18 +137,27 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
                 [(int)board.at<Piece>(moves[i].from())]
                 [moves[i].to().index()];
 
-            int16_t conthist_val = 0;
+            int16_t conthist1_val = 0;
             if (board.move_history.size() >= 1) //don't segfault!
             {
                 //conthist: index by current move as well as last move
                 std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
 
-                conthist_val = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+                conthist1_val = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
                     [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
             }
 
-            moves[i].setScore(hist_val + conthist_val);
+            int16_t conthist2_val = conthist1_val;
+            if (board.move_history.size() >= 2) //don't segfault!
+            {
+                //conthist: index by current move as well as second to last move
+                std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 2];
 
+                conthist1_val = conthist[(int)last_move.first][(new Move(last_move.second))->to().index()]
+                    [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
+            }
+
+            moves[i].setScore(hist_val + conthist1_val + conthist2_val);
         }
     }
 }
