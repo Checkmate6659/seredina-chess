@@ -92,7 +92,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
             return alpha; //no effect of fail soft here
     }
 
-    Movelist moves;
+    W_Movelist moves;
     //only generate captures
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board);
 
@@ -252,7 +252,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         }
     }
 
-    Movelist moves;
+    W_Movelist moves;
     movegen::legalmoves(moves, board);
 
     if (moves.size() == 0 && ss->ply != 0) //no legal moves
@@ -267,7 +267,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (excluded_move != Move::NO_MOVE)
     {
         int excluded_idx = moves.find(excluded_move);
-        moves[excluded_idx].setScore(INT16_MIN);
+        moves.scores[excluded_idx] = INT16_MIN;
     }
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
@@ -281,7 +281,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             continue;
 
         //do late move pruning
-        if (alpha >= -9999 && !board.isCapture(move) && move.score() < 0
+        if (alpha >= -9999 && !board.isCapture(move) && moves.scores[i] < 0
             && depth <= lmp_depth && !incheck
             && lmp_seen >= lmp_count[improving][depth] && ss->ply >= 1)
             continue;
@@ -350,7 +350,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             //these are LMR conditions
             if (depth >= lmr_mindepth && i >= lmr_reduceafter/* 3 + 1*(tt_move == Move::NO_MOVE) */
                 //don't LMR good captures and promos
-                && move.score() < 0x7810 /*&& !incheck && !gives_check */)
+                && moves.scores[i] < 0x7810 /*&& !incheck && !gives_check */)
             {
                 //calculate things in float, so that more *fine* adjustment can be made
                 float lmrf = lmr_table[depth][i]; //use precalculated table
@@ -459,7 +459,7 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
     panic = false; //reset panic flag
 
     Move best_move = Move::NO_MOVE; //no move
-    Movelist moves;
+    W_Movelist moves;
     movegen::legalmoves(moves, board);
     best_move = moves[0]; //default move (panic; hopefully not used)
 

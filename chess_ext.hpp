@@ -13,8 +13,20 @@ typedef struct {
     float h1[HL_SIZE];
 } NNUEAccumulator;
 
-
 //https://disservin.github.io/chess-library/pages/extending-the-library.html
+
+//used to keep track of 32-bit move scores (why does chess-library use 16-bit anyway?)
+class W_Movelist : public Movelist {
+    public:
+    int32_t scores[constants::MAX_MOVES];
+
+    constexpr void add(Move move) noexcept {
+        scores[Movelist::size()] = 0;
+        Movelist::add(move);
+    }
+};
+
+//used to keep track of NNUE accumulators as well as past moves
 class W_Board : public Board {
     public:
     W_Board() : Board() {}

@@ -62,7 +62,7 @@ inline void penal_conthist(W_Board &board, const Move &move, int8_t depth)
 }
 
 //Give a score to all the moves (don't order them immediately!)
-inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cur_killers)
+inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* cur_killers)
 {
     //WARNING: move scores in chess-library are int16_t, so careful with 32-bit hist
     //Also it goes from -32768 to 32767; there are negative values!
@@ -70,7 +70,7 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
         const auto move = moves[i];
 
         if (moves[i] == tt_move) //TT MOVE!!!
-            moves[i].setScore(0x7FFF); //highest score
+            moves.scores[i] = 0x7FFF; //highest score
         //score promotions! (no library function for that tho); only up queen promos a lot
         else if (
             moves[i].promotionType() == PieceType::QUEEN //promotes to a queen (might be enough by itself?)
@@ -79,7 +79,7 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
         {
             //like MVV-LVA really
             PieceType victim = board.at<PieceType>(moves[i].to());
-            moves[i].setScore(0x7FF8 + (int)victim); //really high score!
+            moves.scores[i] = 0x7FF8 + (int)victim; //really high score!
         }
         else if (board.isCapture(moves[i]))
         {
@@ -89,22 +89,22 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
 
             //TODO: try searching these later!
             int16_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001; //0;
-            moves[i].setScore(bonus + (int)victim * 16 - (int)aggressor);
+            moves.scores[i] = bonus + (int)victim * 16 - (int)aggressor;
         }
         //killers
         else if (move == cur_killers[0])
         {
-            moves[i].setScore(0x7803);
+            moves.scores[i] = 0x7803;
         }
         else if (move == cur_killers[1])
         {
-            moves[i].setScore(0x7802);
+            moves.scores[i] = 0x7802;
         }
         //countermove heuristic
         else if (board.move_history.size() >= 1 &&
             move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
             [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
-            moves[i].setScore(0x7801);
+            moves.scores[i] = 0x7801;
         else
         {
             int16_t hist_val = hist //piece-to hist score (we have to cap it tho)
@@ -121,14 +121,14 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
                     [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
             }
 
-            moves[i].setScore(hist_val + conthist_val);
+            moves.scores[i] = hist_val + conthist_val;
 
         }
     }
 }
 
 //Same for qsearch
-inline void score_moves_quiesce(W_Board &board, Movelist &moves)
+inline void score_moves_quiesce(W_Board &board, W_Movelist &moves)
 {
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
@@ -138,30 +138,31 @@ inline void score_moves_quiesce(W_Board &board, Movelist &moves)
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
-            moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
+            moves.scores[i] = 0x4010 + (int)victim * 16 - (int)aggressor;
         }
         else //could get rid of this; keeping it in for safety
         {
-            moves[i].setScore(-32000);
+            moves.scores[i] = -32000;
         }
     }
 }
 
 //swap moves[i] with the best scored move after i
 //TODO: look at Movelist.sort(int index = 0)
-inline void pick_move(Movelist &moves, int i)
+inline void pick_move(W_Movelist &moves, int i)
 {
     Move moves_i = moves[i];
-    int16_t best_score = moves_i.score();
+    int32_t best_score = moves.scores[i];
     int best_index = i;
 
     //search for highest-scored move after this one
     for (int j = i + 1; j < moves.size(); j++)
     {
         const auto move = moves[j];
-        if (move.score() > best_score)
+        const int32_t cur_score = moves.scores[j];
+        if (cur_score > best_score)
         {
-            best_score = move.score();
+            best_score = cur_score;
             best_index = j;
         }
     }
@@ -169,5 +170,7 @@ inline void pick_move(Movelist &moves, int i)
     //swap it in!
     moves[i] = moves[best_index];
     moves[best_index] = moves_i;
+    moves.scores[best_index] = moves.scores[i];
+    moves.scores[i] = best_score;
 }
 #endif
