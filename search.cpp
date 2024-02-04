@@ -387,6 +387,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             if (ss->ply == 0) //get best root move (IMPORTANT!)
                 ss->best_root_move = move;
 
+            //NOTE: i should do this on beta, not alpha!!!
             if (!board.isCapture(move))
             {
                 //boost history
@@ -402,6 +403,13 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                 {
                     killers[ss->ply][1] = killers[ss->ply][0];
                     killers[ss->ply][0] = move;
+
+                    if (board.move_history.size() >= 1)
+                    {
+                        std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
+                        cm_heuristic[(int)last_move.first]
+                        [(new Move(last_move.second))->to().index()] = move.move();
+                    }
                 }
 
                 //store in hash table (beta = lower bound flag)

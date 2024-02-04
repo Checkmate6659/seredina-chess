@@ -4,7 +4,6 @@
 #include "bb_util.hpp"
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
 using namespace chess;
 
 #define MAX_HIST 0x3800
@@ -16,6 +15,7 @@ using namespace chess;
 int16_t hist[12][64];
 //conthist table (an enemy move first (uncolored piece), and our own move later)
 int16_t conthist[6][64][12][64];
+uint16_t cm_heuristic[12][64]; //countermove table (piece; to)
 
 inline void boost_hist(Piece piece, Square to, int8_t depth)
 {
@@ -91,14 +91,20 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
             int16_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001; //0;
             moves[i].setScore(bonus + (int)victim * 16 - (int)aggressor);
         }
+        //killers
         else if (move == cur_killers[0])
         {
-            moves[i].setScore(0x7802);
+            moves[i].setScore(0x7803);
         }
         else if (move == cur_killers[1])
         {
-            moves[i].setScore(0x7801);
+            moves[i].setScore(0x7802);
         }
+        //countermove heuristic
+        else if (board.move_history.size() >= 1 &&
+            move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
+            [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
+            moves[i].setScore(0x7801);
         else
         {
             int16_t hist_val = hist //piece-to hist score (we have to cap it tho)
@@ -110,7 +116,6 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
             {
                 //conthist: index by current move as well as last move
                 std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-                // printf("%d %d %d %d\n", (int)last_move.first.type(), (new Move(last_move.second))->to().index(), (int)board.at<Piece>(move.from()), move.to().index());
 
                 conthist_val = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
                     [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
