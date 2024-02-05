@@ -387,15 +387,23 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             if (ss->ply == 0) //get best root move (IMPORTANT!)
                 ss->best_root_move = move;
 
+            //update hist on alpha (incorrect in theory)
+            if (!board.isCapture(move))
+            {
+                //boost history
+                boost_hist(board.at<Piece>(move.from()), move.to(), depth);
+                boost_conthist(board, move, depth);
+            }
+
             if (cur_score >= beta) //beta cutoff (fail soft)
             {
                 //update hist on beta!
-                if (!board.isCapture(move))
+                /* if (!board.isCapture(move))
                 {
                     //boost history
                     boost_hist(board.at<Piece>(move.from()), move.to(), depth);
                     boost_conthist(board, move, depth);
-                }
+                } */
 
                 //killer move update: quiet move; avoid duplicate killers
                 //(TODO: test if better or worse)
