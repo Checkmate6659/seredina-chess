@@ -350,7 +350,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             //these are LMR conditions
             if (depth >= lmr_mindepth && i >= lmr_reduceafter/* 3 + 1*(tt_move == Move::NO_MOVE) */
                 //don't LMR good captures and promos
-                && moves.scores[i] < 0x7810 /*&& !incheck && !gives_check */)
+                && moves.scores[i] < 0x7FFFF810 /*&& !incheck && !gives_check */)
             {
                 //calculate things in float, so that more *fine* adjustment can be made
                 float lmrf = lmr_table[depth][i]; //use precalculated table

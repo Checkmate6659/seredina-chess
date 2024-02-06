@@ -6,7 +6,6 @@
 #include <cstdint>
 using namespace chess;
 
-//target bench: 530864
 #define MAX_HIST 0x3800//0x3FFFFC00
 #define MIN_HIST (-0x4000)//(-0x40000000)
 #define MAX_CONTHIST (0x3800)//0x3FFFFC00
@@ -87,24 +86,26 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             PieceType aggressor = board.at<PieceType>(moves[i].from());
 
             //TODO: try searching these later!
-            int32_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001;
-            moves.scores[i] = bonus + (int)victim * 12 - (int)aggressor;
-            // if ((int)victim * 12 - (int)aggressor < -10) printf("wtf"); //nothing here
+            //if we move the 0x7810 even by 1 (up or down), we change bench (even if we adjust killers etc accordingly)
+            int32_t bonus = SEE(board, moves[i], -1) ? 0x7FFFF810 : 0x7FFFF001;
+            moves.scores[i] = bonus + (int32_t)victim * 16 - (int32_t)aggressor;
+
+            // if ((int)victim * 12 - (int)aggressor < -10) printf("wtf"); //nothing here; but it can go < 0
         }
         //killers
         else if (move == cur_killers[0])
         {
-            moves.scores[i] = 0x7803;
+            moves.scores[i] = 0x7FFFF804;
         }
         else if (move == cur_killers[1])
         {
-            moves.scores[i] = 0x7802;
+            moves.scores[i] = 0x7FFFF802;
         }
         //countermove heuristic
         else if (board.move_history.size() >= 1 &&
             move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
             [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
-            moves.scores[i] = 0x7801;
+            moves.scores[i] = 0x7FFFF801;
         else
         {
             int32_t hist_val = hist //piece-to hist score (we have to cap it tho)
@@ -122,6 +123,7 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             }
 
             moves.scores[i] = hist_val + conthist_val;
+            if (moves.scores[i] > 0x7000) printf("hist too high\n");
         }
     }
 }
