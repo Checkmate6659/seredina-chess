@@ -6,6 +6,7 @@
 #include <cstdint>
 using namespace chess;
 
+//target bench: 530864
 #define MAX_HIST 0x3800//0x3FFFFC00
 #define MIN_HIST (-0x4000)//(-0x40000000)
 #define MAX_CONTHIST (0x3800)//0x3FFFFC00
@@ -86,23 +87,23 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             PieceType aggressor = board.at<PieceType>(moves[i].from());
 
             //TODO: try searching these later!
-            int32_t bonus = SEE(board, moves[i], -1) ? 0x7FFFF810 : 0x7FFFF001; //0;
-            moves.scores[i] = bonus + (int)victim * 16 - (int)aggressor;
+            int32_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001;
+            moves.scores[i] = bonus + (int)victim * 12 - (int)aggressor;
         }
         //killers
         else if (move == cur_killers[0])
         {
-            moves.scores[i] = 0x7FFFF803;
+            moves.scores[i] = 0x7803;
         }
         else if (move == cur_killers[1])
         {
-            moves.scores[i] = 0x7FFFF802;
+            moves.scores[i] = 0x7802;
         }
         //countermove heuristic
         else if (board.move_history.size() >= 1 &&
             move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
             [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
-            moves.scores[i] = 0x7FFFF801;
+            moves.scores[i] = 0x7801;
         else
         {
             int32_t hist_val = hist //piece-to hist score (we have to cap it tho)
