@@ -6,10 +6,10 @@
 #include <cstdint>
 using namespace chess;
 
-#define MAX_HIST 0x3FFFFC00
-#define MIN_HIST (-0x40000000)
-#define MAX_CONTHIST 0x3FFFFC00
-#define MIN_CONTHIST (-0x40000000)
+#define MAX_HIST 0x3800//0x3FFFFC00
+#define MIN_HIST (-0x4000)//(-0x40000000)
+#define MAX_CONTHIST (0x3800)//0x3FFFFC00
+#define MIN_CONTHIST (-0x4000)//(-0x40000000)
 
 //history table (piece; to)
 int32_t hist[12][64];
