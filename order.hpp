@@ -89,6 +89,7 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             //TODO: try searching these later!
             int32_t bonus = SEE(board, moves[i], -1) ? 0x7810 : 0x7001;
             moves.scores[i] = bonus + (int)victim * 12 - (int)aggressor;
+            // if ((int)victim * 12 - (int)aggressor < -10) printf("wtf"); //nothing here
         }
         //killers
         else if (move == cur_killers[0])
@@ -121,7 +122,6 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             }
 
             moves.scores[i] = hist_val + conthist_val;
-
         }
     }
 }
