@@ -8,7 +8,7 @@ using namespace chess;
 
 #define MAX_HIST 0x3800//0x3FFFFC00
 #define MIN_HIST (-0x4000)//(-0x40000000)
-#define MAX_CONTHIST (0x3800)//0x3FFFFC00
+#define MAX_CONTHIST 0x3800//0x3FFFFC00
 #define MIN_CONTHIST (-0x4000)//(-0x40000000)
 
 //history table (piece; to)
@@ -123,7 +123,7 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
             }
 
             moves.scores[i] = hist_val + conthist_val;
-            if (moves.scores[i] > 0x7000) printf("hist too high\n");
+            // if (moves.scores[i] > 0x7000) printf("hist too high\n");
         }
     }
 }
