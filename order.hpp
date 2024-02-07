@@ -6,9 +6,13 @@
 #include <cstdint>
 using namespace chess;
 
-#define MAX_HIST 0x3800//0x3FFFFC00
+//NOTE: increasing these to +-0x20000000 is garbage
+//increasing top bound doesn't affect things
+//increasing bottom bound from -0x4000 to -0x8000 gradually changes bench
+//and then its stable all the way to the minimum
+#define MAX_HIST 0x3FFFFC00
 #define MIN_HIST (-0x4000)//(-0x40000000)
-#define MAX_CONTHIST 0x3800//0x3FFFFC00
+#define MAX_CONTHIST 0x3FFFFC00
 #define MIN_CONTHIST (-0x4000)//(-0x40000000)
 
 //history table (piece; to)
@@ -19,46 +23,46 @@ uint16_t cm_heuristic[12][64]; //countermove table (piece; to)
 
 inline void boost_hist(Piece piece, Square to, int8_t depth)
 {
-    int boost = depth * depth; //simple depth² (experiment with this!); no overflows!
-    int new_hist = hist[(int)piece][to.index()] + boost; //score not constrained yet!
+    int64_t boost = depth * depth; //simple depth² (experiment with this!); no overflows!
+    int64_t new_hist = hist[(int)piece][to.index()] + boost; //score not constrained yet!
     //constrain history score
-    hist[(int)piece][to.index()] = std::min(MAX_HIST, new_hist); //score can only go up here
+    hist[(int)piece][to.index()] = std::min((int64_t)MAX_HIST, new_hist); //score can only go up here
 }
 
 inline void penal_hist(Piece piece, Square to, int8_t depth)
 {
-    int penalty = depth * depth; //simple depth² (experiment with this!); no overflows!
-    int new_hist = hist[(int)piece][to.index()] - penalty; //score not constrained yet!
+    int64_t penalty = depth * depth; //simple depth² (experiment with this!); no overflows!
+    int64_t new_hist = hist[(int)piece][to.index()] - penalty; //score not constrained yet!
     //constrain history score
-    hist[(int)piece][to.index()] = std::max(MIN_HIST, new_hist); //score can only go down here
+    hist[(int)piece][to.index()] = std::max((int64_t)MIN_HIST, new_hist); //score can only go down here
 }
 
 inline void boost_conthist(W_Board &board, const Move &move, int8_t depth)
 {
     if (board.move_history.empty()) return; //don't segfault!
 
-    int boost = depth * depth;
+    int64_t boost = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int64_t new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] + boost; //score not constrained yet!
     //constrain history score
     conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
-        std::min(MAX_CONTHIST, new_conthist); //score can only go up here
+        std::min((int64_t)MAX_CONTHIST, new_conthist); //score can only go up here
 }
 
 inline void penal_conthist(W_Board &board, const Move &move, int8_t depth)
 {
     if (board.move_history.empty()) return; //don't segfault!
 
-    int penalty = depth * depth;
+    int64_t penalty = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int64_t new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] - penalty; //score not constrained yet!
     //constrain history score
     conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
-        std::max(MIN_CONTHIST, new_conthist); //score can only go up here
+        std::max((int64_t)MIN_CONTHIST, new_conthist); //score can only go up here
 }
 
 //Give a score to all the moves (don't order them immediately!)
@@ -66,6 +70,7 @@ inline void score_moves(W_Board &board, W_Movelist &moves, Move &tt_move, Move* 
 {
     //WARNING: move scores in chess-library are int16_t, so careful with 32-bit hist
     //Also it goes from -32768 to 32767; there are negative values!
+    //so that's why i implemented 32-bit scores
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
 
