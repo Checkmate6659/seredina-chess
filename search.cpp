@@ -267,7 +267,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (excluded_move != Move::NO_MOVE)
     {
         int excluded_idx = moves.find(excluded_move);
-        moves.scores[excluded_idx] = INT32_MIN;
+        moves.scores[excluded_idx] = INT32_MIN + 1;
     }
 
     Move best_move = Move::NO_MOVE; //for hash table (if fail low, best move unknown)
@@ -281,7 +281,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
             continue;
 
         //do late move pruning
-        if (alpha >= -9999 && !board.isCapture(move) && moves.scores[i] < 0
+        if (alpha >= -9999 && !board.isCapture(move) && moves.scores[i] < 0x7FFFF000
             && depth <= lmp_depth && !incheck
             && lmp_seen >= lmp_count[improving][depth] && ss->ply >= 1)
             continue;
