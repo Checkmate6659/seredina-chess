@@ -31,9 +31,10 @@ const void* TUNING_PARAMS[] = {
     &se_dbl_margin, &se_dbl_maxdepth,
     &lmp00, &lmp10, &lmp01, &lmp11,
     &lmp_depth,
+    &nmp_mul,
 };
 //F = float (all *1000); I = int
-const char TUNING_TYPES[] = "FFIIIIIIFFIIIIIIIIIFFFFI";
+const char TUNING_TYPES[] = "FFIIIIIIFFIIIIIIIIIFFFFIF";
 #endif
 
 int main(int argc, char **argv)

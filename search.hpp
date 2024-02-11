@@ -44,6 +44,7 @@ extern int se_mindepth, se_ttdepth_margin, se_depth_mul; //SE params
 extern int se_dbl_margin, se_dbl_maxdepth; //SE double extension stuff
 extern float lmp00, lmp10, lmp01, lmp11;
 extern int lmp_depth;
+extern float nmp_mul;
 #else
 const float lmr_f1 = 0.704, lmr_f2 = 0.256; //used in LMR lookup table initialization
 const int iir_depth = 1; //IIR minimum depth
@@ -57,6 +58,7 @@ const int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
 const int se_dbl_margin = 25, se_dbl_maxdepth = 11; //SE double extension stuff
 const float lmp00 = 3.275, lmp10 = 5.053, lmp01 = 1.503, lmp11 = 3.133;
 const int lmp_depth = 9;
+const float nmp_mul = (2./3);
 #endif
 
 typedef struct {

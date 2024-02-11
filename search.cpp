@@ -9,7 +9,7 @@
 #ifdef TUNING
 float lmr_f1 = 0.704, lmr_f2 = 0.256; //used in LMR lookup table initialization
 int iir_depth = 1; //IIR minimum depth
-int nmp_const = 3; //NMP constant term
+int nmp_const = 1; //NMP constant term
 int see_multiplier = 78, see_const = 65; //SEE linear parameters
 int lmr_mindepth = 2, lmr_reduceafter = 3; //min depth and first reduced move
 float lmr_pv = 0.676, lmr_improving = 0.111; //reducing less when PV and improving (TODO)
@@ -19,6 +19,7 @@ int se_mindepth = 5, se_ttdepth_margin = 3, se_depth_mul = 3; //SE params
 int se_dbl_margin = 25, se_dbl_maxdepth = 11; //SE double extension stuff
 float lmp00 = 3.275, lmp10 = 5.053, lmp01 = 1.503, lmp11 = 3.133;
 int lmp_depth = 9;
+float nmp_mul = (2./3);
 #endif
 
 uint64_t nodes = 0;
@@ -237,7 +238,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
         {
-            int reduced_depth = depth * (2./3) - nmp_const; //R + depth*r
+            int reduced_depth = depth * nmp_mul - nmp_const; //R + depth*r
             reduced_depth = std::max(reduced_depth, 1); //don't use depth < 1
 
             board.makeNullMove(); //make null move
