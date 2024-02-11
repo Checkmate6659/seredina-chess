@@ -40,7 +40,7 @@ void init_search_tables()
             //init LMR table
             if (depth == 0 || i == 0) //for safety! (also to avoid doing log(0))
                 lmr_table[depth][i] = 0;
-            else //log*log formula (TODO: tune constants!)
+            else //log*log formula
                 lmr_table[depth][i] = std::round(lmr_f1 + log(depth) * log(i) * lmr_f2);
         }
 
@@ -97,7 +97,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
     //only generate captures
     movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board);
 
-    HASHE* phashe = ProbeHash(board, MAX_DEPTH); //qs TT (TODO: test!!!)
+    HASHE* phashe = ProbeHash(board, MAX_DEPTH); //qs TT
     if (phashe != nullptr) //we have a hit (NO depth check here!)
     {
         if (phashe->flags == hashfEXACT) //exact hit! great
@@ -112,10 +112,10 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
         if (alpha >= beta) //tt cutoff
             return alpha;
     }
-    //TODO: use TT move here as well?
 
+    //TODO: use TT move here as well?
     Move best_move = Move::NO_MOVE; //best move (for TT)
-    score_moves_quiesce(board, moves);
+    score_moves_quiesce(board, moves, phashe->best);
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];

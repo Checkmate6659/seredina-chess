@@ -72,10 +72,8 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
         if (moves[i] == tt_move) //TT MOVE!!!
             moves[i].setScore(0x7FFF); //highest score
         //score promotions! (no library function for that tho); only up queen promos a lot
-        else if (
-            moves[i].promotionType() == PieceType::QUEEN //promotes to a queen (might be enough by itself?)
-            && board.at<PieceType>(moves[i].from()) == PieceType::PAWN //moved a pawn
-            && moves[i].to().rank() % 7 == 0) //to a back rank
+        else if (moves[i].typeOf() == Move::PROMOTION &&
+            moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
         {
             //like MVV-LVA really
             PieceType victim = board.at<PieceType>(moves[i].to());
@@ -128,21 +126,27 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
 }
 
 //Same for qsearch
-inline void score_moves_quiesce(W_Board &board, Movelist &moves)
+inline void score_moves_quiesce(W_Board &board, Movelist &moves, uint16_t tt_move)
 {
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
 
-        if (board.isCapture(moves[i]))
+        // if (moves[i] == tt_move) //TT MOVE!!!
+        //     moves[i].setScore(0x7FFF); //highest score
+        // //score promotions! (no library function for that tho); only up queen promos a lot
+        // else if (moves[i].typeOf() == Move::PROMOTION &&
+        //     moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
+        // {
+        //     //like MVV-LVA really
+        //     PieceType victim = board.at<PieceType>(moves[i].to());
+        //     moves[i].setScore(0x7FF8 + (int)victim); //really high score!
+        // }
+        // else
         {
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());
             PieceType aggressor = board.at<PieceType>(moves[i].from());
             moves[i].setScore(0x4010 + (int)victim * 16 - (int)aggressor);
-        }
-        else //could get rid of this; keeping it in for safety
-        {
-            moves[i].setScore(-32000);
         }
     }
 }
