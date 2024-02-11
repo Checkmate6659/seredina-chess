@@ -212,6 +212,8 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
     if (incheck) //to indicate that we don't have a static eval!!!
         //IMPORTANT: negating prev ply doesn't work (last move could have hung a piece)
         ss->eval[ss->ply] = NO_SCORE; //in check: set to sth TINY (no chance!)
+    // else if (phashe != nullptr) //TT hit
+        // ss->eval[ss->ply] = phashe->val; //use TT value to save an eval call
     else //TODO: try putting phashe->val or qs result here instead
         ss->eval[ss->ply] = eval(board); //static eval
 
@@ -235,7 +237,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //NMP: enough depth, not in check, no zugzwang condition
         if (!incheck && board.hasNonPawnMaterial(board.sideToMove()))
         {
-            int reduced_depth = depth - nmp_const; //constant R = 2
+            int reduced_depth = depth * (2./3) - nmp_const; //R + depth*r
             reduced_depth = std::max(reduced_depth, 1); //don't use depth < 1
 
             board.makeNullMove(); //make null move

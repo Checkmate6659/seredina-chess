@@ -47,7 +47,7 @@ extern int lmp_depth;
 #else
 const float lmr_f1 = 0.704, lmr_f2 = 0.256; //used in LMR lookup table initialization
 const int iir_depth = 1; //IIR minimum depth
-const int nmp_const = 3; //NMP constant term
+const int nmp_const = 1; //NMP constant term
 const int see_multiplier = 78, see_const = 65; //SEE linear parameters
 const int lmr_mindepth = 2, lmr_reduceafter = 3; //min depth and first reduced move
 const float lmr_pv = 0.676, lmr_improving = 0.111; //reducing less when PV and improving (TODO)
