@@ -71,7 +71,7 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
 
         if (moves[i] == tt_move) //TT MOVE!!!
             moves[i].setScore(0x7FFF); //highest score
-        //score promotions! (no library function for that tho); only up queen promos a lot
+        //score promotions! only up queen promos a lot
         else if (moves[i].typeOf() == Move::PROMOTION &&
             moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
         {
@@ -131,17 +131,17 @@ inline void score_moves_quiesce(W_Board &board, Movelist &moves, uint16_t tt_mov
     for (int i = 0; i < moves.size(); i++) {
         const auto move = moves[i];
 
-        // if (moves[i] == tt_move) //TT MOVE!!!
-        //     moves[i].setScore(0x7FFF); //highest score
-        // //score promotions! (no library function for that tho); only up queen promos a lot
-        // else if (moves[i].typeOf() == Move::PROMOTION &&
-        //     moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
-        // {
-        //     //like MVV-LVA really
-        //     PieceType victim = board.at<PieceType>(moves[i].to());
-        //     moves[i].setScore(0x7FF8 + (int)victim); //really high score!
-        // }
-        // else
+        // if (moves[i].move() == tt_move) //TT MOVE!!!
+            // moves[i].setScore(0x7FFF); //highest score
+        //score promotions! only up queen promos a lot
+        /* else if (moves[i].typeOf() == Move::PROMOTION &&
+            moves[i].promotionType() == PieceType::QUEEN) //promotes to a queen (might be enough by itself?)
+        {
+            //like MVV-LVA really
+            PieceType victim = board.at<PieceType>(moves[i].to());
+            moves[i].setScore(0x7FF8 + (int)victim); //really high score!
+        }
+        else*/
         {
             //MVV-LVA
             PieceType victim = board.at<PieceType>(moves[i].to());

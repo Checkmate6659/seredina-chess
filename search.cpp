@@ -115,7 +115,7 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
 
     //TODO: use TT move here as well?
     Move best_move = Move::NO_MOVE; //best move (for TT)
-    score_moves_quiesce(board, moves, phashe->best);
+    score_moves_quiesce(board, moves, phashe != nullptr ? phashe->best : 0);
     for (int i = 0; i < moves.size(); i++) {
         pick_move(moves, i); //get the best-scored move to the index i
         const auto move = moves[i];
