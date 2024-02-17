@@ -327,8 +327,10 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
                 singular_extend = -1;
         }
 
-        //is current move capture? (TODO: promotions too!)
-        bool quiet = !board.isCapture(move);
+        //is current move ttmove, capture or promotion?
+        bool quiet = /* (phashe == nullptr || move.move() != phashe->best)
+            &&  */!board.isCapture(move) /* && !(move.typeOf() == Move::PROMOTION
+            && move.promotionType() == PieceType::QUEEN) */;
 
         board.makeMove(move);
         nodes++; //1 move made = 1 node
@@ -337,7 +339,7 @@ Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss
         //does current move give check?
         bool gives_check = board.inCheck();
 
-        lmp_seen += quiet /* && !gives_check */; //increase number of moves seen for lmp
+        lmp_seen += quiet /* && !gives_check */; //increase number of moves seen for lmp (TODO: test!)
 
         Value cur_score;
         //PVS; TODO: try exclude nodes with alpha TT flag or a TT miss
