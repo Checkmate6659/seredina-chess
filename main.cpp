@@ -13,7 +13,7 @@
 #include "bench.hpp"
 using namespace chess;
 
-#define ENGINE_NAME "Seredina v1.1"
+#define ENGINE_NAME "Seredina v1.2"
 
 #define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
 
