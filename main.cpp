@@ -211,7 +211,7 @@ int main(int argc, char **argv)
                     input_stream >> command;
                     movetime = std::stoi(command);
                 }
-                else //movestogo
+                else if (command[4] == 's') //movestogo
                 {
                     input_stream >> command;
                     movestogo = std::stoi(command);
