@@ -509,9 +509,14 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
             best_move = cur_best_move; //update best move
             old_best = best_score; //update best score
 
+            //printing scores >9999 or <-9999 is illegal?! ok...
+            Value print_cp_score = old_best;
+            if(print_cp_score > 9999) print_cp_score = 9999;
+            else if(print_cp_score < -9999) print_cp_score = -9999;
+
             //print out all the juicy info
             uint32_t curtime = (clock() - start_time) * 1000 / CLOCKS_PER_SEC;
-            std::cout << "info depth " << (int)cur_depth << " score cp " << old_best <<
+            std::cout << "info depth " << (int)cur_depth << " score cp " << print_cp_score <<
                 " nodes " << nodes << " time " << curtime <<
                 " nps " << (curtime ? (nodes * 1000 / curtime) : 0) << " pv ";
             std::cout << uci::moveToUci(best_move) << " "; //print best move (not in TT)
