@@ -507,7 +507,9 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
         if (!panic || best_score >= old_best) //normal OR partial search results
         {
             best_move = cur_best_move; //update best move
-            old_best = best_score; //update best score
+            //no if(!panic) here, because partial search results
+            if(!panic) old_best = best_score; //update best score
+            //we need one here because of printing
 
             //printing scores >9999 or <-9999 is illegal?! ok...
             Value print_cp_score = old_best;
