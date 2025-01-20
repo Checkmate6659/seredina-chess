@@ -446,12 +446,16 @@ Move search_root(W_Board &board, int alloc_time_ms, int depth)
 {
     //convert from ms to clock ticks; set this up for panic return
     //NOTE: clock_t is 64-bit signed on this system, but if it is 32-bit this can overflow!
+    //so in that case, don't run the engine for 25 days or more continuously!
     clock_t start_time = clock();
     clock_t alloc_time_clk = alloc_time_ms * CLOCKS_PER_SEC / 1000;
     search_end_time = start_time + alloc_time_clk;
 
     if (depth != MAX_DEPTH) //"go depth ..." command
-        search_end_time = (uint64_t)((clock_t)(-1)) >> 1; //maximum value of a clock_t
+        search_end_time =  //maximum value of a clock_t
+            (sizeof(clock_t) == sizeof(uint64_t)) ? //supposes clock_t is either 32bit or 64bit
+            ((uint64_t)((clock_t)(-1)) >> 1) :
+            ((uint32_t)((clock_t)(-1)) >> 1);
 
     //shift killers by 2 ply (expecting chess game conditions)
     for (int i = 0; i < MAX_DEPTH - 2; i++)

@@ -185,7 +185,7 @@ int main(int argc, char **argv)
                 {
                     input_stream >> command;
                     depth = std::stoi(command);
-                    movetime = 3600000; //1h of movetime (WARNING: clock_t 32bit -> overflow!!!)
+                    movetime = 3600000; //1h of movetime
                 }
                 else if (command[0] == 'n') //nodes (ignored if compiled w/o SEARCH_NODES)
                 {
