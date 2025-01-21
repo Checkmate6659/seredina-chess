@@ -39,10 +39,10 @@ inline void boost_conthist(W_Board &board, const Move &move, int8_t depth)
 
     int boost = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int new_conthist = conthist[(int)last_move.first.type()][Move(last_move.second).to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] + boost; //score not constrained yet!
     //constrain history score
-    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    conthist[(int)last_move.first.type()][Move(last_move.second).to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
         std::min(MAX_CONTHIST, new_conthist); //score can only go up here
 }
@@ -53,10 +53,10 @@ inline void penal_conthist(W_Board &board, const Move &move, int8_t depth)
 
     int penalty = depth * depth;
     std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
-    int new_conthist = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    int new_conthist = conthist[(int)last_move.first.type()][Move(last_move.second).to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] - penalty; //score not constrained yet!
     //constrain history score
-    conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+    conthist[(int)last_move.first.type()][Move(last_move.second).to().index()]
         [(int)board.at<Piece>(move.from())][move.to().index()] =
         std::max(MIN_CONTHIST, new_conthist); //score can only go up here
 }
@@ -101,7 +101,7 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
         //countermove heuristic
         else if (board.move_history.size() >= 1 &&
             move.move() == cm_heuristic[(int)board.move_history[board.move_history.size() - 1].first]
-            [(new Move(board.move_history[board.move_history.size() - 1].second))->to().index()])
+            [Move(board.move_history[board.move_history.size() - 1].second).to().index()])
             moves[i].setScore(0x7801);
         else
         {
@@ -115,7 +115,7 @@ inline void score_moves(W_Board &board, Movelist &moves, Move &tt_move, Move* cu
                 //conthist: index by current move as well as last move
                 std::pair<Piece, uint16_t> last_move = board.move_history[board.move_history.size() - 1];
 
-                conthist_val = conthist[(int)last_move.first.type()][(new Move(last_move.second))->to().index()]
+                conthist_val = conthist[(int)last_move.first.type()][Move(last_move.second).to().index()]
                     [(int)board.at<Piece>(moves[i].from())][moves[i].to().index()];
             }
 
