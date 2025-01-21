@@ -11,6 +11,7 @@
 #include "search.hpp"
 #include "eval.hpp"
 #include "bench.hpp"
+#include "tt.hpp"
 using namespace chess;
 
 #define ENGINE_NAME "Seredina v1.2b"
@@ -104,6 +105,7 @@ int main(int argc, char **argv)
             std::cout << "readyok\n";
             break;
             case 'q': //quit
+            free(hash_table); //make valgrind happy
             return 0;
             case 's': //setoption
             input_stream >> command; //"name"
