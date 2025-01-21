@@ -18,3 +18,6 @@ Search features include:
 - Check extensions
 - SEE pruning
 Evaluation is achieved through an incrementally updated (768->256)x2->1 SCReLU NNUE (not quantized)
+
+## Benchmarking
+Run the engine with a command line argument to get a benchmark of it, which is required for testing platforms like OpenBench. However, some GUIs may expect engines to run the benchmark differently, which can break things.
