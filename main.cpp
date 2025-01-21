@@ -14,7 +14,7 @@
 #include "tt.hpp"
 using namespace chess;
 
-#define ENGINE_NAME "Seredina v1.2b"
+#define ENGINE_NAME "Seredina v1.2c"
 
 #define EXTRA_DELAY 50 //time to account for communication and panic delay (in ms)
 
