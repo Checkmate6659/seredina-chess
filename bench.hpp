@@ -1,6 +1,5 @@
 #include <ctime>
 #include <time.h>
-#include <endian.h>
 #include "search.hpp"
 #include "chess_ext.hpp"
 using namespace chess;

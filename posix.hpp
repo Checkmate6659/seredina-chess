@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <sys/ioctl.h>
 #include <termios.h>
 
@@ -17,4 +20,6 @@ inline bool kbhit()
 
     return byteswaiting > 0;
 }
+
+#endif
 
