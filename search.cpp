@@ -26,6 +26,7 @@ uint64_t nodes = 0;
 uint64_t max_nodes = UINT64_MAX; //only used when SEARCH_NODES is on
 clock_t search_end_time;
 bool panic = false;
+bool bench_mode = false;
 
 Move killers[MAX_DEPTH][2];
 
@@ -150,13 +151,16 @@ Value quiesce(W_Board &board, Value alpha, Value beta)
 
 Value search(W_Board& board, int depth, Value alpha, Value beta, SearchStack* ss, Move excluded_move = Move::NO_MOVE)
 {
-    if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
-        if (panic || clock() > search_end_time ||
-        (!(nodes & 0xFFFF) && kbhit())) //make costly key check extra rare
-        {
-            panic = true;
-            return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
-        }
+    if(!bench_mode) //don't abort on user pressing a key in bench mode!
+    {
+        if (panic || !(nodes & 0xFFF)) //check for panic every 4096 nodes
+            if (panic || clock() > search_end_time ||
+            (!(nodes & 0xFFFF) && kbhit())) //make costly key check extra rare
+            {
+                panic = true;
+                return PANIC_VALUE; //PANIC; NOTE: negating INT32_MIN is UB!!!
+            }
+    }
 
     //are we in a PV-node? (useless for now)
     bool pv_node = (beta - alpha > 1);

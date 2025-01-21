@@ -61,6 +61,8 @@ const int lmp_depth = 9;
 const float nmp_mul = (2./3);
 #endif
 
+extern bool bench_mode;
+
 typedef struct {
     int8_t ply;
     Move best_root_move;

@@ -67,6 +67,7 @@ void bench()
 
     // https://stackoverflow.com/questions/30184998/how-to-disable-cout-output-in-the-runtime
     std::cout.setstate(std::ios_base::failbit); //set fail bit: output is discarded
+    bench_mode = true; //disable aborting on user input
 
     clock_t clk = -clock(); //start measurement
     for (int i = 0; i < sizeof(benchfens)/sizeof(std::string); i++)
